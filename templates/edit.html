@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ recipe.titre or recipe.title }} - Recipe Library{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <h1>Edit Recipe</h1>
+    
+    <form id="editForm" class="edit-form">
+        <div class="form-section">
+            <h2>Metadata</h2>
+            
+            <div class="form-group">
+                <label for="titre">Title</label>
+                <input type="text" id="titre" name="titre" value="{{ recipe.titre or recipe.title }}" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="cuisine">Cuisine</label>
+                    <input type="text" id="cuisine" name="cuisine" value="{{ recipe.cuisine or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulte">Difficulty</label>
+                    <select id="difficulte" name="difficulte">
+                        <option value="Facile" {% if (recipe.difficulte or recipe.difficulty) == 'Facile' %}selected{% endif %}>Facile</option>
+                        <option value="Moyen" {% if (recipe.difficulte or recipe.difficulty) == 'Moyen' %}selected{% endif %}>Moyen</option>
+                        <option value="Difficile" {% if (recipe.difficulte or recipe.difficulty) == 'Difficile' %}selected{% endif %}>Difficile</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="temps_preparation">Prep Time</label>
+                    <input type="text" id="temps_preparation" name="temps_preparation" 
+                           value="{{ recipe.temps_preparation or recipe.prep_time or '' }}" 
+                           placeholder="e.g., 15 minutes">
+                </div>
+
+                <div class="form-group">
+                    <label for="temps_cuisson">Cook Time</label>
+                    <input type="text" id="temps_cuisson" name="temps_cuisson" 
+                           value="{{ recipe.temps_cuisson or recipe.cook_time or '' }}" 
+                           placeholder="e.g., 30 minutes">
+                </div>
+
+                <div class="form-group">
+                    <label for="portions">Servings</label>
+                    <input type="number" id="portions" name="portions" 
+                           value="{{ recipe.portions or recipe.servings or '' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>Content</h2>
+            
+            <div class="form-group">
+                <label for="content">Recipe Content (Markdown)</label>
+                <textarea id="content" name="content" rows="20">{{ recipe.content }}</textarea>
+                <small>You can use Markdown formatting</small>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="/recipe/{{ recipe_id }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+
+    <div id="saveStatus" class="alert" style="display: none;"></div>
+</div>
+
+<script>
+document.getElementById('editForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const saveStatus = document.getElementById('saveStatus');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+    
+    // Gather form data
+    const formData = {
+        metadata: {
+            titre: document.getElementById('titre').value,
+            cuisine: document.getElementById('cuisine').value,
+            difficulte: document.getElementById('difficulte').value,
+            temps_preparation: document.getElementById('temps_preparation').value,
+            temps_cuisson: document.getElementById('temps_cuisson').value,
+            portions: parseInt(document.getElementById('portions').value) || 0
+        },
+        content: document.getElementById('content').value
+    };
+    
+    try {
+        const response = await fetch('/recipe/{{ recipe_id }}/edit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            saveStatus.className = 'alert alert-success';
+            saveStatus.textContent = '✅ ' + data.message;
+            saveStatus.style.display = 'block';
+            
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/recipe/{{ recipe_id }}';
+            }, 2000);
+        } else {
+            saveStatus.className = 'alert alert-error';
+            saveStatus.textContent = '❌ Error: ' + data.error;
+            saveStatus.style.display = 'block';
+        }
+    } catch (error) {
+        saveStatus.className = 'alert alert-error';
+        saveStatus.textContent = '❌ Error: ' + error.message;
+        saveStatus.style.display = 'block';
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Changes';
+    }
+});
+</script>
+
+<style>
+.edit-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.edit-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group textarea {
+    font-family: 'Monaco', 'Courier New', monospace;
+    resize: vertical;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.titre or recipe.title }} - Recipe Library{% endblock %}
+
+{% block content %}
+<div class="recipe-view">
+    <div class="recipe-header">
+        <h1>{{ recipe.titre or recipe.title }}</h1>
+        <div class="recipe-actions">
+            <a href="/recipe/{{ recipe_id }}/edit" class="btn btn-secondary">Edit Recipe</a>
+            <a href="/recipes" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+
+    <div class="recipe-content-grid">
+        <!-- Left side: Recipe details -->
+        <div class="recipe-details">
+            <div class="recipe-meta-grid">
+                <div class="meta-item">
+                    <strong>Cuisine:</strong>
+                    <span>{{ recipe.cuisine or 'Unknown' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Difficulty:</strong>
+                    <span>{{ recipe.difficulte or recipe.difficulty or 'Unknown' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Prep Time:</strong>
+                    <span>{{ recipe.temps_preparation or recipe.prep_time or 'Unknown' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Cook Time:</strong>
+                    <span>{{ recipe.temps_cuisson or recipe.cook_time or 'Unknown' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Total Time:</strong>
+                    <span>{{ recipe.temps_total or recipe.total_time or 'Unknown' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Servings:</strong>
+                    <span>{{ recipe.portions or recipe.servings or 'Unknown' }}</span>
+                </div>
+            </div>
+
+            {% if recipe.tags_dietetiques or recipe.dietary_tags %}
+            <div class="recipe-tags">
+                <strong>Dietary:</strong>
+                {% for tag in (recipe.tags_dietetiques or recipe.dietary_tags) %}
+                <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if recipe.allergenes or recipe.allergens %}
+            <div class="recipe-allergens">
+                <strong>⚠️ Allergens:</strong>
+                {% for allergen in (recipe.allergenes or recipe.allergens) %}
+                <span class="tag tag-warning">{{ allergen }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="recipe-markdown">
+                {{ recipe.content | safe }}
+            </div>
+        </div>
+
+        <!-- Right side: Original image -->
+        <div class="recipe-image-panel">
+            <h3>Original Image</h3>
+            {% if recipe.image_source %}
+            <div class="image-container">
+                <img src="/images/{{ recipe.image_source }}" alt="{{ recipe.titre or recipe.title }}" class="recipe-image">
+            </div>
+            {% else %}
+            <p class="no-image">No image available</p>
+            {% endif %}
+
+            {% if recipe.necessite_revision or recipe.needs_review %}
+            <div class="alert alert-warning">
+                <strong>⚠️ Needs Review</strong>
+                <p>This recipe was flagged for manual review due to low confidence score.</p>
+            </div>
+            {% endif %}
+
+            <div class="recipe-info-box">
+                <h4>Recipe Info</h4>
+                <p><strong>Added:</strong> {{ recipe.date_ajout or recipe.date_added or 'Unknown' }}</p>
+                {% if recipe.score_confiance or recipe.confidence_score %}
+                <p><strong>Confidence:</strong> {{ "%.0f"|format((recipe.score_confiance or recipe.confidence_score) * 100) }}%</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.recipe-view {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.recipe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.recipe-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.recipe-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+}
+
+.recipe-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.meta-item strong {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.recipe-tags, .recipe-allergens {
+    margin-bottom: 1.5rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag-warning {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.recipe-markdown {
+    line-height: 1.8;
+}
+
+.recipe-markdown h1 {
+    font-size: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.recipe-markdown h2 {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: #333;
+}
+
+.recipe-markdown ul, .recipe-markdown ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.recipe-markdown li {
+    margin-bottom: 0.5rem;
+}
+
+.recipe-image-panel {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+}
+
+.image-container {
+    margin-bottom: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.recipe-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.no-image {
+    padding: 3rem;
+    text-align: center;
+    background: #f5f5f5;
+    border-radius: 8px;
+    color: #999;
+}
+
+.recipe-info-box {
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.recipe-info-box h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.recipe-info-box p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 1024px) {
+    .recipe-content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .recipe-image-panel {
+        position: static;
+    }
+}
+</style>
+{% endblock %}

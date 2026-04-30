@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Recipe Library{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Welcome to Recipe Library</h1>
+    <p>Manage your recipes with AI-powered image processing and semantic search</p>
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <h2>📤 Upload Images</h2>
+        <p>Upload recipe images and let AI extract the recipe details automatically</p>
+        <a href="/upload" class="btn btn-primary">Upload Recipe</a>
+    </div>
+
+    <div class="feature-card">
+        <h2>🔍 Search Recipes</h2>
+        <p>Find recipes using semantic search or filter by ingredients, cuisine, and more</p>
+        <a href="/search" class="btn btn-primary">Search Recipes</a>
+    </div>
+
+    <div class="feature-card">
+        <h2>📚 Browse All</h2>
+        <p>View all your recipes in one place</p>
+        <a href="/recipes" class="btn btn-primary">View All Recipes</a>
+    </div>
+</div>
+
+<div class="stats">
+    <h2>Quick Stats</h2>
+    <div class="stats-grid" id="stats">
+        <div class="stat-item">
+            <span class="stat-number" id="total-recipes">-</span>
+            <span class="stat-label">Total Recipes</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load stats
+fetch('/recipes')
+    .then(response => response.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const recipeCards = doc.querySelectorAll('.recipe-card');
+        document.getElementById('total-recipes').textContent = recipeCards.length;
+    })
+    .catch(error => console.error('Error loading stats:', error));
+</script>
+{% endblock %}

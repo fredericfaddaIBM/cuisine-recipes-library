@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Search Recipes - Recipe Library{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <h1>Search Recipes</h1>
+    
+    <form id="searchForm" class="search-form">
+        <div class="form-group">
+            <label for="semanticQuery">Semantic Search</label>
+            <input type="text" id="semanticQuery" name="semantic_query" 
+                   placeholder="e.g., 'comfort food for winter' or 'quick healthy meal'">
+            <small>Use natural language to describe what you're looking for</small>
+        </div>
+
+        <div class="filters-section">
+            <h3>Filters</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ingredients">Ingredients (comma-separated)</label>
+                    <input type="text" id="ingredients" name="ingredients" 
+                           placeholder="e.g., chicken, tomatoes">
+                </div>
+
+                <div class="form-group">
+                    <label for="excludeIngredients">Exclude Ingredients</label>
+                    <input type="text" id="excludeIngredients" name="exclude_ingredients" 
+                           placeholder="e.g., nuts, dairy">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="cuisine">Cuisine</label>
+                    <select id="cuisine" name="cuisine" multiple>
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dietary">Dietary Tags</label>
+                    <select id="dietary" name="dietary" multiple>
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="mealType">Meal Type</label>
+                    <select id="mealType" name="meal_type">
+                        <option value="">Any</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty">Difficulty</label>
+                    <select id="difficulty" name="difficulty">
+                        <option value="">Any</option>
+                        <option value="facile">Facile</option>
+                        <option value="moyen">Moyen</option>
+                        <option value="difficile">Difficile</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="maxTime">Max Time (minutes)</label>
+                    <input type="number" id="maxTime" name="max_time" min="0" placeholder="e.g., 30">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+        </div>
+    </form>
+
+    <div id="results" class="results-container" style="display: none;">
+        <h2>Results (<span id="resultCount">0</span>)</h2>
+        <div id="resultsList" class="results-grid"></div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <p>Searching...</p>
+    </div>
+</div>
+
+<script>
+// Load search options
+async function loadSearchOptions() {
+    try {
+        const response = await fetch('/api/search-options');
+        const data = await response.json();
+        
+        // Populate cuisine select
+        const cuisineSelect = document.getElementById('cuisine');
+        cuisineSelect.innerHTML = data.cuisines.map(c => 
+            `<option value="${c}">${c}</option>`
+        ).join('');
+        
+        // Populate dietary select
+        const dietarySelect = document.getElementById('dietary');
+        dietarySelect.innerHTML = data.dietary_tags.map(d => 
+            `<option value="${d}">${d}</option>`
+        ).join('');
+        
+        // Populate meal type select
+        const mealTypeSelect = document.getElementById('mealType');
+        mealTypeSelect.innerHTML = '<option value="">Any</option>' + 
+            data.meal_types.map(m => `<option value="${m}">${m}</option>`).join('');
+        
+    } catch (error) {
+        console.error('Error loading search options:', error);
+    }
+}
+
+// Search form submission
+document.getElementById('searchForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    
+    loading.style.display = 'block';
+    results.style.display = 'none';
+    
+    // Gather form data
+    const formData = {
+        semantic_query: document.getElementById('semanticQuery').value || null,
+        ingredients: document.getElementById('ingredients').value.split(',').map(s => s.trim()).filter(s => s),
+        exclude_ingredients: document.getElementById('excludeIngredients').value.split(',').map(s => s.trim()).filter(s => s),
+        cuisine: Array.from(document.getElementById('cuisine').selectedOptions).map(o => o.value),
+        dietary: Array.from(document.getElementById('dietary').selectedOptions).map(o => o.value),
+        meal_type: document.getElementById('mealType').value || null,
+        difficulty: document.getElementById('difficulty').value || null,
+        max_time: document.getElementById('maxTime').value || null,
+        limit: 20
+    };
+    
+    try {
+        const response = await fetch('/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayResults(data.results);
+        } else {
+            alert('Search failed: ' + data.error);
+        }
+    } catch (error) {
+        alert('Search error: ' + error.message);
+    } finally {
+        loading.style.display = 'none';
+    }
+});
+
+function displayResults(recipes) {
+    const results = document.getElementById('results');
+    const resultsList = document.getElementById('resultsList');
+    const resultCount = document.getElementById('resultCount');
+    
+    resultCount.textContent = recipes.length;
+    
+    if (recipes.length === 0) {
+        resultsList.innerHTML = '<p class="no-results">No recipes found matching your criteria.</p>';
+    } else {
+        resultsList.innerHTML = recipes.map(recipe => `
+            <div class="recipe-card">
+                ${recipe.image ? `<img src="/images/${recipe.image}" alt="${recipe.title}">` : ''}
+                <div class="recipe-info">
+                    <h3><a href="/recipe/${recipe.id}">${recipe.title}</a></h3>
+                    <p class="recipe-meta">
+                        <span>🍽️ ${recipe.cuisine}</span>
+                        <span>⏱️ ${recipe.time}</span>
+                        <span>📊 ${recipe.difficulty}</span>
+                    </p>
+                    ${recipe.dietary.length > 0 ? `
+                        <p class="recipe-tags">
+                            ${recipe.dietary.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </p>
+                    ` : ''}
+                    <p class="recipe-score">Match: ${recipe.score}%</p>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    results.style.display = 'block';
+}
+
+function resetForm() {
+    document.getElementById('searchForm').reset();
+    document.getElementById('results').style.display = 'none';
+}
+
+// Load options on page load
+loadSearchOptions();
+</script>
+{% endblock %}

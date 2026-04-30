@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persistent directories outside container
+      - ./images:/app/images
+      - ./recipes:/app/recipes
+      - ./logs:/app/logs
+      - ./json-extract:/app/json-extract
+      - ./embeddings:/app/embeddings
+      # Mount config file
+      - ./config.yaml:/app/config.yaml
+    environment:
+      - FLASK_ENV=production
+      # Connect to Ollama running on host machine
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    extra_hosts:
+      # Allow container to access host machine's Ollama
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Made with Bob

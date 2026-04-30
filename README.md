@@ -408,10 +408,38 @@ python3 scripts/search_recipes.py --semantic "pasta" --details
 python3 scripts/search_recipes.py --semantic "italian" > italian-recipes.txt
 ```
 
+## Web Application (Docker)
+
+A web interface is now available! Run the application in a Docker container with access to your local Ollama installation.
+
+### Quick Start with Docker
+
+```bash
+# Start the web application
+./start-docker.sh
+
+# Or manually:
+docker-compose up --build
+```
+
+The web application will be available at: **http://localhost:5000**
+
+### Features
+
+- 📤 **Upload Images**: Drag and drop recipe images for automatic processing
+- ✏️ **Edit Recipes**: Modify markdown files directly in the browser
+- 🔍 **Advanced Search**: Use semantic search with multiple filter options
+- 👁️ **Side-by-Side View**: See markdown and original image together
+- 🔄 **Auto-Processing**: Uploads trigger automatic text extraction and embedding generation
+
+### Documentation
+
+See [README-DOCKER.md](README-DOCKER.md) for detailed Docker setup instructions.
+
 ## Future Enhancements
 
 Potential additions:
-- [ ] Web interface for easier searching
+- [x] Web interface for easier searching
 - [ ] Recipe recommendations based on cooking history
 - [ ] Nutritional information extraction
 - [ ] Shopping list generation
