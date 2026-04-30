@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Recipe data (user's personal recipes)
+images/*.jpg
+images/*.jpeg
+images/*.png
+images/*.heic
+images/*.heif
+recipes/*.md
+embeddings/*.json
+json-extract/*.json
+
+# Logs
+logs/*.log
+
+# Keep directory structure
+!images/.gitkeep
+!recipes/.gitkeep
+!embeddings/.gitkeep
+!json-extract/.gitkeep
+!logs/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Config overrides
+config.local.yaml
+
+# Test files
+test_*.py
+*_test.py

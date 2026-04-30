@@ -1,0 +1,6 @@
+ollama>=0.1.0
+Pillow>=10.0.0
+pillow-heif>=0.13.0
+python-frontmatter>=1.0.0
+numpy>=1.24.0
+pyyaml>=6.0
