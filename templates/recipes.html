@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}All Recipes - Recipe Library{% endblock %}
+{% block title %}Toutes les Recettes - Bibliothèque de Recettes{% endblock %}
 
 {% block content %}
 <div class="recipes-list-container">
     <div class="recipes-header">
-        <h1>All Recipes</h1>
-        <p>Browse all {{ recipes|length }} recipes in your library</p>
+        <h1>Toutes les Recettes</h1>
+        <p>Parcourez les {{ recipes|length }} recettes de votre bibliothèque</p>
     </div>
 
     {% if recipes %}
@@ -34,9 +34,9 @@
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 3h18v18H3zM9 9h6v6H9z"/>
         </svg>
-        <h2>No recipes yet</h2>
-        <p>Upload your first recipe image to get started</p>
-        <a href="/upload" class="btn btn-primary">Upload Recipe</a>
+        <h2>Aucune recette pour le moment</h2>
+        <p>Téléchargez votre première image de recette pour commencer</p>
+        <a href="/upload" class="btn btn-primary">Télécharger une Recette</a>
     </div>
     {% endif %}
 </div>

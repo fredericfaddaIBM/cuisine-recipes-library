@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Edit {{ recipe.titre or recipe.title }} - Recipe Library{% endblock %}
+{% block title %}Modifier {{ recipe.titre or recipe.title }} - Bibliothèque de Recettes{% endblock %}
 
 {% block content %}
 <div class="edit-container">
-    <h1>Edit Recipe</h1>
+    <h1>Modifier la Recette</h1>
     
     <form id="editForm" class="edit-form">
         <div class="form-section">
-            <h2>Metadata</h2>
+            <h2>Métadonnées</h2>
             
             <div class="form-group">
-                <label for="titre">Title</label>
+                <label for="titre">Titre</label>
                 <input type="text" id="titre" name="titre" value="{{ recipe.titre or recipe.title }}" required>
             </div>
 
@@ -22,7 +22,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="difficulte">Difficulty</label>
+                    <label for="difficulte">Difficulté</label>
                     <select id="difficulte" name="difficulte">
                         <option value="Facile" {% if (recipe.difficulte or recipe.difficulty) == 'Facile' %}selected{% endif %}>Facile</option>
                         <option value="Moyen" {% if (recipe.difficulte or recipe.difficulty) == 'Moyen' %}selected{% endif %}>Moyen</option>
@@ -33,40 +33,40 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="temps_preparation">Prep Time</label>
-                    <input type="text" id="temps_preparation" name="temps_preparation" 
-                           value="{{ recipe.temps_preparation or recipe.prep_time or '' }}" 
-                           placeholder="e.g., 15 minutes">
+                    <label for="temps_preparation">Temps de Préparation</label>
+                    <input type="text" id="temps_preparation" name="temps_preparation"
+                           value="{{ recipe.temps_preparation or recipe.prep_time or '' }}"
+                           placeholder="ex: 15 minutes">
                 </div>
 
                 <div class="form-group">
-                    <label for="temps_cuisson">Cook Time</label>
-                    <input type="text" id="temps_cuisson" name="temps_cuisson" 
-                           value="{{ recipe.temps_cuisson or recipe.cook_time or '' }}" 
-                           placeholder="e.g., 30 minutes">
+                    <label for="temps_cuisson">Temps de Cuisson</label>
+                    <input type="text" id="temps_cuisson" name="temps_cuisson"
+                           value="{{ recipe.temps_cuisson or recipe.cook_time or '' }}"
+                           placeholder="ex: 30 minutes">
                 </div>
 
                 <div class="form-group">
-                    <label for="portions">Servings</label>
-                    <input type="number" id="portions" name="portions" 
+                    <label for="portions">Portions</label>
+                    <input type="number" id="portions" name="portions"
                            value="{{ recipe.portions or recipe.servings or '' }}">
                 </div>
             </div>
         </div>
 
         <div class="form-section">
-            <h2>Content</h2>
+            <h2>Contenu</h2>
             
             <div class="form-group">
-                <label for="content">Recipe Content (Markdown)</label>
+                <label for="content">Contenu de la Recette (Markdown)</label>
                 <textarea id="content" name="content" rows="20">{{ recipe.content }}</textarea>
-                <small>You can use Markdown formatting</small>
+                <small>Vous pouvez utiliser le formatage Markdown</small>
             </div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="/recipe/{{ recipe_id }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Enregistrer les Modifications</button>
+            <a href="/recipe/{{ recipe_id }}" class="btn btn-secondary">Annuler</a>
         </div>
     </form>
 
@@ -81,7 +81,7 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Saving...';
+    submitBtn.textContent = 'Enregistrement...';
     
     // Gather form data
     const formData = {
@@ -127,7 +127,7 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
         saveStatus.style.display = 'block';
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Save Changes';
+        submitBtn.textContent = 'Enregistrer les Modifications';
     }
 });
 </script>

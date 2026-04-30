@@ -1,33 +1,33 @@
 {% extends "base.html" %}
 
-{% block title %}Search Recipes - Recipe Library{% endblock %}
+{% block title %}Rechercher des Recettes - Bibliothèque de Recettes{% endblock %}
 
 {% block content %}
 <div class="search-container">
-    <h1>Search Recipes</h1>
+    <h1>Rechercher des Recettes</h1>
     
     <form id="searchForm" class="search-form">
         <div class="form-group">
-            <label for="semanticQuery">Semantic Search</label>
-            <input type="text" id="semanticQuery" name="semantic_query" 
-                   placeholder="e.g., 'comfort food for winter' or 'quick healthy meal'">
-            <small>Use natural language to describe what you're looking for</small>
+            <label for="semanticQuery">Recherche Sémantique</label>
+            <input type="text" id="semanticQuery" name="semantic_query"
+                   placeholder="ex: 'plat réconfortant pour l'hiver' ou 'repas rapide et sain'">
+            <small>Utilisez un langage naturel pour décrire ce que vous recherchez</small>
         </div>
 
         <div class="filters-section">
-            <h3>Filters</h3>
+            <h3>Filtres</h3>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label for="ingredients">Ingredients (comma-separated)</label>
-                    <input type="text" id="ingredients" name="ingredients" 
-                           placeholder="e.g., chicken, tomatoes">
+                    <label for="ingredients">Ingrédients (séparés par des virgules)</label>
+                    <input type="text" id="ingredients" name="ingredients"
+                           placeholder="ex: poulet, tomates">
                 </div>
 
                 <div class="form-group">
-                    <label for="excludeIngredients">Exclude Ingredients</label>
-                    <input type="text" id="excludeIngredients" name="exclude_ingredients" 
-                           placeholder="e.g., nuts, dairy">
+                    <label for="excludeIngredients">Exclure les Ingrédients</label>
+                    <input type="text" id="excludeIngredients" name="exclude_ingredients"
+                           placeholder="ex: noix, produits laitiers">
                 </div>
             </div>
 
@@ -35,30 +35,30 @@
                 <div class="form-group">
                     <label for="cuisine">Cuisine</label>
                     <select id="cuisine" name="cuisine" multiple>
-                        <option value="">Loading...</option>
+                        <option value="">Chargement...</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="dietary">Dietary Tags</label>
+                    <label for="dietary">Tags Diététiques</label>
                     <select id="dietary" name="dietary" multiple>
-                        <option value="">Loading...</option>
+                        <option value="">Chargement...</option>
                     </select>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="mealType">Meal Type</label>
+                    <label for="mealType">Type de Repas</label>
                     <select id="mealType" name="meal_type">
-                        <option value="">Any</option>
+                        <option value="">Tous</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="difficulty">Difficulty</label>
+                    <label for="difficulty">Difficulté</label>
                     <select id="difficulty" name="difficulty">
-                        <option value="">Any</option>
+                        <option value="">Tous</option>
                         <option value="facile">Facile</option>
                         <option value="moyen">Moyen</option>
                         <option value="difficile">Difficile</option>
@@ -66,25 +66,25 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="maxTime">Max Time (minutes)</label>
-                    <input type="number" id="maxTime" name="max_time" min="0" placeholder="e.g., 30">
+                    <label for="maxTime">Temps Maximum (minutes)</label>
+                    <input type="number" id="maxTime" name="max_time" min="0" placeholder="ex: 30">
                 </div>
             </div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Search</button>
-            <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+            <button type="submit" class="btn btn-primary">Rechercher</button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">Réinitialiser</button>
         </div>
     </form>
 
     <div id="results" class="results-container" style="display: none;">
-        <h2>Results (<span id="resultCount">0</span>)</h2>
+        <h2>Résultats (<span id="resultCount">0</span>)</h2>
         <div id="resultsList" class="results-grid"></div>
     </div>
 
     <div id="loading" class="loading" style="display: none;">
-        <p>Searching...</p>
+        <p>Recherche en cours...</p>
     </div>
 </div>
 
@@ -154,10 +154,10 @@ document.getElementById('searchForm').addEventListener('submit', async (e) => {
         if (data.success) {
             displayResults(data.results);
         } else {
-            alert('Search failed: ' + data.error);
+            alert('Échec de la recherche : ' + data.error);
         }
     } catch (error) {
-        alert('Search error: ' + error.message);
+        alert('Erreur de recherche : ' + error.message);
     } finally {
         loading.style.display = 'none';
     }
@@ -171,7 +171,7 @@ function displayResults(recipes) {
     resultCount.textContent = recipes.length;
     
     if (recipes.length === 0) {
-        resultsList.innerHTML = '<p class="no-results">No recipes found matching your criteria.</p>';
+        resultsList.innerHTML = '<p class="no-results">Aucune recette trouvée correspondant à vos critères.</p>';
     } else {
         resultsList.innerHTML = recipes.map(recipe => `
             <div class="recipe-card">
@@ -188,7 +188,7 @@ function displayResults(recipes) {
                             ${recipe.dietary.map(tag => `<span class="tag">${tag}</span>`).join('')}
                         </p>
                     ` : ''}
-                    <p class="recipe-score">Match: ${recipe.score}%</p>
+                    <p class="recipe-score">Correspondance : ${recipe.score}%</p>
                 </div>
             </div>
         `).join('');

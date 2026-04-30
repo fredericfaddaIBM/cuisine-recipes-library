@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}{{ recipe.titre or recipe.title }} - Recipe Library{% endblock %}
+{% block title %}{{ recipe.titre or recipe.title }} - Bibliothèque de Recettes{% endblock %}
 
 {% block content %}
 <div class="recipe-view">
     <div class="recipe-header">
         <h1>{{ recipe.titre or recipe.title }}</h1>
         <div class="recipe-actions">
-            <a href="/recipe/{{ recipe_id }}/edit" class="btn btn-secondary">Edit Recipe</a>
-            <a href="/recipes" class="btn btn-secondary">Back to List</a>
+            <a href="/recipe/{{ recipe_id }}/edit" class="btn btn-secondary">Modifier la Recette</a>
+            <a href="/recipes" class="btn btn-secondary">Retour à la Liste</a>
         </div>
     </div>
 
@@ -17,34 +17,34 @@
         <div class="recipe-details">
             <div class="recipe-meta-grid">
                 <div class="meta-item">
-                    <strong>Cuisine:</strong>
-                    <span>{{ recipe.cuisine or 'Unknown' }}</span>
+                    <strong>Cuisine :</strong>
+                    <span>{{ recipe.cuisine or 'Inconnu' }}</span>
                 </div>
                 <div class="meta-item">
-                    <strong>Difficulty:</strong>
-                    <span>{{ recipe.difficulte or recipe.difficulty or 'Unknown' }}</span>
+                    <strong>Difficulté :</strong>
+                    <span>{{ recipe.difficulte or recipe.difficulty or 'Inconnu' }}</span>
                 </div>
                 <div class="meta-item">
-                    <strong>Prep Time:</strong>
-                    <span>{{ recipe.temps_preparation or recipe.prep_time or 'Unknown' }}</span>
+                    <strong>Temps de Préparation :</strong>
+                    <span>{{ recipe.temps_preparation or recipe.prep_time or 'Inconnu' }}</span>
                 </div>
                 <div class="meta-item">
-                    <strong>Cook Time:</strong>
-                    <span>{{ recipe.temps_cuisson or recipe.cook_time or 'Unknown' }}</span>
+                    <strong>Temps de Cuisson :</strong>
+                    <span>{{ recipe.temps_cuisson or recipe.cook_time or 'Inconnu' }}</span>
                 </div>
                 <div class="meta-item">
-                    <strong>Total Time:</strong>
-                    <span>{{ recipe.temps_total or recipe.total_time or 'Unknown' }}</span>
+                    <strong>Temps Total :</strong>
+                    <span>{{ recipe.temps_total or recipe.total_time or 'Inconnu' }}</span>
                 </div>
                 <div class="meta-item">
-                    <strong>Servings:</strong>
-                    <span>{{ recipe.portions or recipe.servings or 'Unknown' }}</span>
+                    <strong>Portions :</strong>
+                    <span>{{ recipe.portions or recipe.servings or 'Inconnu' }}</span>
                 </div>
             </div>
 
             {% if recipe.tags_dietetiques or recipe.dietary_tags %}
             <div class="recipe-tags">
-                <strong>Dietary:</strong>
+                <strong>Diététique :</strong>
                 {% for tag in (recipe.tags_dietetiques or recipe.dietary_tags) %}
                 <span class="tag">{{ tag }}</span>
                 {% endfor %}
@@ -53,7 +53,7 @@
 
             {% if recipe.allergenes or recipe.allergens %}
             <div class="recipe-allergens">
-                <strong>⚠️ Allergens:</strong>
+                <strong>⚠️ Allergènes :</strong>
                 {% for allergen in (recipe.allergenes or recipe.allergens) %}
                 <span class="tag tag-warning">{{ allergen }}</span>
                 {% endfor %}
@@ -67,27 +67,27 @@
 
         <!-- Right side: Original image -->
         <div class="recipe-image-panel">
-            <h3>Original Image</h3>
+            <h3>Image Originale</h3>
             {% if recipe.image_source %}
             <div class="image-container">
                 <img src="/images/{{ recipe.image_source }}" alt="{{ recipe.titre or recipe.title }}" class="recipe-image">
             </div>
             {% else %}
-            <p class="no-image">No image available</p>
+            <p class="no-image">Aucune image disponible</p>
             {% endif %}
 
             {% if recipe.necessite_revision or recipe.needs_review %}
             <div class="alert alert-warning">
-                <strong>⚠️ Needs Review</strong>
-                <p>This recipe was flagged for manual review due to low confidence score.</p>
+                <strong>⚠️ Nécessite une Révision</strong>
+                <p>Cette recette a été signalée pour révision manuelle en raison d'un score de confiance faible.</p>
             </div>
             {% endif %}
 
             <div class="recipe-info-box">
-                <h4>Recipe Info</h4>
-                <p><strong>Added:</strong> {{ recipe.date_ajout or recipe.date_added or 'Unknown' }}</p>
+                <h4>Informations sur la Recette</h4>
+                <p><strong>Ajoutée :</strong> {{ recipe.date_ajout or recipe.date_added or 'Inconnu' }}</p>
                 {% if recipe.score_confiance or recipe.confidence_score %}
-                <p><strong>Confidence:</strong> {{ "%.0f"|format((recipe.score_confiance or recipe.confidence_score) * 100) }}%</p>
+                <p><strong>Confiance :</strong> {{ "%.0f"|format((recipe.score_confiance or recipe.confidence_score) * 100) }}%</p>
                 {% endif %}
             </div>
         </div>

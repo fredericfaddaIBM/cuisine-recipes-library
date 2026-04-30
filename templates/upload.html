@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Upload Recipe - Recipe Library{% endblock %}
+{% block title %}Télécharger une Recette - Bibliothèque de Recettes{% endblock %}
 
 {% block content %}
 <div class="upload-container">
-    <h1>Upload Recipe Image</h1>
-    <p>Upload an image of a recipe and let AI extract the details automatically</p>
+    <h1>Télécharger une Image de Recette</h1>
+    <p>Téléchargez une image de recette et laissez l'IA extraire automatiquement les détails</p>
 
     <div class="upload-area" id="uploadArea">
         <form id="uploadForm" enctype="multipart/form-data">
@@ -15,18 +15,18 @@
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <p>Drag and drop an image here or click to browse</p>
+                <p>Glissez-déposez une image ici ou cliquez pour parcourir</p>
                 <input type="file" id="fileInput" name="file" accept="image/*,.heic,.heif" style="display: none;">
                 <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                    Choose File
+                    Choisir un Fichier
                 </button>
             </div>
             <div id="preview" class="preview" style="display: none;">
-                <img id="previewImage" src="" alt="Preview">
+                <img id="previewImage" src="" alt="Aperçu">
                 <p id="fileName"></p>
             </div>
             <button type="submit" class="btn btn-success" id="uploadBtn" style="display: none;">
-                Upload and Process
+                Télécharger et Traiter
             </button>
         </form>
     </div>
@@ -35,7 +35,7 @@
         <div class="progress-bar">
             <div class="progress-fill" id="progressFill"></div>
         </div>
-        <p id="progressText">Processing...</p>
+        <p id="progressText">Traitement en cours...</p>
     </div>
 
     <div id="result" class="result-container" style="display: none;">
@@ -100,7 +100,7 @@ uploadForm.addEventListener('submit', async (e) => {
     
     const file = fileInput.files[0];
     if (!file) {
-        alert('Please select a file');
+        alert('Veuillez sélectionner un fichier');
         return;
     }
     
@@ -108,7 +108,7 @@ uploadForm.addEventListener('submit', async (e) => {
     progress.style.display = 'block';
     result.style.display = 'none';
     uploadBtn.disabled = true;
-    progressText.textContent = 'Uploading and processing...';
+    progressText.textContent = 'Téléchargement et traitement...';
     
     const formData = new FormData();
     formData.append('file', file);
@@ -124,22 +124,22 @@ uploadForm.addEventListener('submit', async (e) => {
         if (data.success) {
             resultAlert.className = 'alert alert-success';
             resultAlert.innerHTML = `
-                <h3>✅ Success!</h3>
+                <h3>✅ Succès !</h3>
                 <p>${data.message}</p>
-                <a href="/recipe/${data.recipe_id}" class="btn btn-primary">View Recipe</a>
+                <a href="/recipe/${data.recipe_id}" class="btn btn-primary">Voir la Recette</a>
             `;
         } else {
             resultAlert.className = 'alert alert-error';
             resultAlert.innerHTML = `
-                <h3>❌ Error</h3>
+                <h3>❌ Erreur</h3>
                 <p>${data.error}</p>
             `;
         }
     } catch (error) {
         resultAlert.className = 'alert alert-error';
         resultAlert.innerHTML = `
-            <h3>❌ Error</h3>
-            <p>Failed to upload: ${error.message}</p>
+            <h3>❌ Erreur</h3>
+            <p>Échec du téléchargement : ${error.message}</p>
         `;
     } finally {
         progress.style.display = 'none';
