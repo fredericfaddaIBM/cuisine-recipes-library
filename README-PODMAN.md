@@ -13,6 +13,40 @@ This guide explains how to run the Recipe Library web application using Podman w
    ollama pull nomic-embed-text
    ```
 
+## macOS Setup
+
+On macOS, Podman runs in a virtual machine. You need to initialize and start the Podman machine:
+
+### First Time Setup
+
+```bash
+# Initialize the Podman machine
+podman machine init
+
+# Start the Podman machine
+podman machine start
+
+# Verify it's running
+podman machine list
+```
+
+### Daily Usage
+
+The Podman machine needs to be running before you can use containers:
+
+```bash
+# Check if machine is running
+podman machine list
+
+# Start if not running
+podman machine start
+
+# Stop when done (optional)
+podman machine stop
+```
+
+**Note**: The startup script (`./start-docker.sh`) will automatically start the Podman machine if it's not running.
+
 ## Quick Start
 
 ### 1. Install podman-compose (if not already installed)
@@ -21,10 +55,18 @@ This guide explains how to run the Recipe Library web application using Podman w
 pip3 install podman-compose
 ```
 
-### 2. Build and Start the Container
+### 2. Initialize Podman Machine (macOS only, first time)
 
 ```bash
-# Using the startup script (auto-detects Podman)
+# Initialize and start the Podman machine
+podman machine init
+podman machine start
+```
+
+### 3. Build and Start the Container
+
+```bash
+# Using the startup script (auto-detects Podman and starts machine if needed)
 ./start-docker.sh
 
 # Or manually with podman-compose
@@ -33,11 +75,14 @@ podman-compose up --build
 
 The web application will be available at: **http://localhost:5000**
 
-### 3. Stop the Container
+### 4. Stop the Container
 
 ```bash
 # Stop the container
 podman-compose down
+
+# Optionally stop the Podman machine (macOS)
+podman machine stop
 ```
 
 ## Podman-Specific Configuration
@@ -117,6 +162,23 @@ Navigate to **All Recipes** to see your complete recipe library.
 
 ## Troubleshooting
 
+### Podman Machine Not Running (macOS)
+
+**Problem**: `Cannot connect to Podman socket` or `connection refused`
+
+**Solution**: Start the Podman machine:
+```bash
+# Check status
+podman machine list
+
+# Start the machine
+podman machine start
+
+# Verify it's running
+podman machine list
+# Should show "Currently running"
+```
+
 ### Container Can't Connect to Ollama
 
 **Problem**: Error connecting to Ollama from container
@@ -125,7 +187,12 @@ Navigate to **All Recipes** to see your complete recipe library.
 
 1. Ensure Ollama is running: `ollama list`
 2. Check Ollama is accessible: `curl http://localhost:11434/api/tags`
-3. Verify host networking:
+3. On macOS, Ollama must be accessible from the Podman VM:
+   ```bash
+   # Ollama should be listening on all interfaces or specifically on the VM network
+   # Check Ollama configuration
+   ```
+4. Verify host networking:
    ```bash
    # Test from within the container
    podman exec -it <container-id> curl http://host.containers.internal:11434/api/tags
@@ -174,45 +241,69 @@ ollama pull nomic-embed-text
 **Solution**: Install it via pip:
 ```bash
 pip3 install podman-compose
+
+# Verify installation
+podman-compose --version
 ```
+
+### Podman Machine Won't Start
+
+**Problem**: `podman machine start` fails
+
+**Solutions**:
+
+1. Remove and reinitialize:
+   ```bash
+   podman machine stop
+   podman machine rm
+   podman machine init
+   podman machine start
+   ```
+
+2. Check for conflicting VMs:
+   ```bash
+   podman machine list
+   ```
+
+3. Ensure virtualization is enabled in BIOS/System Preferences
 
 ## Podman Commands
 
-### View Running Containers
+### Machine Management (macOS)
 
 ```bash
-podman ps
+# List machines
+podman machine list
+
+# Start machine
+podman machine start
+
+# Stop machine
+podman machine stop
+
+# SSH into machine
+podman machine ssh
+
+# Remove machine
+podman machine rm
 ```
 
-### View Logs
+### Container Management
 
 ```bash
-# Follow logs in real-time
+# View running containers
+podman ps
+
+# View logs
 podman-compose logs -f
 
-# View specific service logs
-podman-compose logs web
-```
-
-### Stop and Remove Containers
-
-```bash
+# Stop and remove containers
 podman-compose down
-```
 
-### Rebuild Container
-
-```bash
+# Rebuild container
 podman-compose up --build
-```
 
-### Access Container Shell
-
-```bash
-# Get container ID
-podman ps
-
-# Access shell
+# Access container shell
 podman exec -it <container-id> /bin/bash
 ```
 

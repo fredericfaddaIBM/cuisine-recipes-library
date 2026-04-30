@@ -12,6 +12,36 @@ if command -v podman &> /dev/null; then
     CONTAINER_CMD="podman"
     COMPOSE_CMD="podman-compose"
     echo "✅ Using Podman"
+    
+    # Check if Podman machine is running (macOS/Windows)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "Checking Podman machine status..."
+        if ! podman machine list 2>/dev/null | grep -q "Currently running"; then
+            echo "⚠️  Podman machine is not running"
+            echo ""
+            echo "Starting Podman machine..."
+            
+            # Check if machine exists
+            if ! podman machine list 2>/dev/null | grep -q "podman-machine-default"; then
+                echo "Initializing Podman machine (this may take a few minutes)..."
+                podman machine init
+            fi
+            
+            echo "Starting Podman machine..."
+            podman machine start
+            
+            if [ $? -eq 0 ]; then
+                echo "✅ Podman machine started successfully"
+            else
+                echo "❌ Failed to start Podman machine"
+                echo "Please run manually: podman machine start"
+                exit 1
+            fi
+        else
+            echo "✅ Podman machine is running"
+        fi
+    fi
+    
 elif command -v docker &> /dev/null; then
     CONTAINER_CMD="docker"
     COMPOSE_CMD="docker-compose"
