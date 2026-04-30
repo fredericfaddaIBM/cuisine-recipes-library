@@ -1,23 +1,35 @@
 #!/bin/bash
 
-# Recipe Library - Docker Startup Script
-# This script builds and starts the Docker container
+# Recipe Library - Container Startup Script
+# This script builds and starts the container (supports Docker and Podman)
 
-echo "🍳 Recipe Library - Docker Setup"
-echo "================================"
+echo "🍳 Recipe Library - Container Setup"
+echo "===================================="
 echo ""
 
-# Check if Docker is installed
-if ! command -v docker &> /dev/null; then
-    echo "❌ Error: Docker is not installed"
-    echo "Please install Docker from https://www.docker.com/get-started"
+# Detect container runtime
+if command -v podman &> /dev/null; then
+    CONTAINER_CMD="podman"
+    COMPOSE_CMD="podman-compose"
+    echo "✅ Using Podman"
+elif command -v docker &> /dev/null; then
+    CONTAINER_CMD="docker"
+    COMPOSE_CMD="docker-compose"
+    echo "✅ Using Docker"
+else
+    echo "❌ Error: Neither Docker nor Podman is installed"
+    echo "Please install Docker or Podman"
     exit 1
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Error: Docker Compose is not installed"
-    echo "Please install Docker Compose"
+# Check if compose is available
+if ! command -v $COMPOSE_CMD &> /dev/null; then
+    echo "❌ Error: $COMPOSE_CMD is not installed"
+    if [ "$CONTAINER_CMD" = "podman" ]; then
+        echo "Please install podman-compose: pip3 install podman-compose"
+    else
+        echo "Please install docker-compose"
+    fi
     exit 1
 fi
 
@@ -37,8 +49,8 @@ mkdir -p images recipes logs json-extract embeddings templates static
 
 # Build and start the container
 echo ""
-echo "Building and starting Docker container..."
-docker-compose up --build
+echo "Building and starting container with $COMPOSE_CMD..."
+$COMPOSE_CMD up --build
 
 # Note: The script will keep running and show logs
 # Press Ctrl+C to stop the container

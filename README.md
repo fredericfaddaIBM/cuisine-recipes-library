@@ -408,18 +408,22 @@ python3 scripts/search_recipes.py --semantic "pasta" --details
 python3 scripts/search_recipes.py --semantic "italian" > italian-recipes.txt
 ```
 
-## Web Application (Docker)
+## Web Application (Docker/Podman)
 
-A web interface is now available! Run the application in a Docker container with access to your local Ollama installation.
+A web interface is now available! Run the application in a container with access to your local Ollama installation.
 
-### Quick Start with Docker
+### Quick Start
 
 ```bash
-# Start the web application
+# Start the web application (auto-detects Docker or Podman)
 ./start-docker.sh
 
 # Or manually:
+# For Docker:
 docker-compose up --build
+
+# For Podman:
+podman-compose up --build
 ```
 
 The web application will be available at: **http://localhost:5000**
@@ -434,7 +438,8 @@ The web application will be available at: **http://localhost:5000**
 
 ### Documentation
 
-See [README-DOCKER.md](README-DOCKER.md) for detailed Docker setup instructions.
+- [README-DOCKER.md](README-DOCKER.md) - Docker/Podman setup guide
+- [README-PODMAN.md](README-PODMAN.md) - Podman-specific details
 
 ## Future Enhancements
 

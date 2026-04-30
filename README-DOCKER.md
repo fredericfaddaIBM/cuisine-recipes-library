@@ -1,10 +1,12 @@
-# Recipe Library - Docker Setup
+# Recipe Library - Docker/Podman Setup
 
-This guide explains how to run the Recipe Library web application in a Docker container with access to your local Ollama installation.
+This guide explains how to run the Recipe Library web application in a container with access to your local Ollama installation.
+
+> **Note**: This guide covers both Docker and Podman. For Podman-specific details, see [README-PODMAN.md](README-PODMAN.md).
 
 ## Prerequisites
 
-1. **Docker and Docker Compose** installed on your system
+1. **Docker/Podman** and **docker-compose/podman-compose** installed on your system
 2. **Ollama** running locally on your machine
 3. Required Ollama models pulled:
    ```bash
@@ -12,13 +14,27 @@ This guide explains how to run the Recipe Library web application in a Docker co
    ollama pull nomic-embed-text
    ```
 
+### For Podman Users
+
+Install podman-compose:
+```bash
+pip3 install podman-compose
+```
+
 ## Quick Start
 
 ### 1. Build and Start the Container
 
 ```bash
-# Build the Docker image and start the container
+# Using the startup script (auto-detects Docker or Podman)
+./start-docker.sh
+
+# Or manually:
+# For Docker:
 docker-compose up --build
+
+# For Podman:
+podman-compose up --build
 ```
 
 The web application will be available at: **http://localhost:5000**
@@ -26,23 +42,31 @@ The web application will be available at: **http://localhost:5000**
 ### 2. Stop the Container
 
 ```bash
-# Stop the container
+# For Docker:
 docker-compose down
+
+# For Podman:
+podman-compose down
 ```
 
 ## How It Works
 
 ### Ollama Connection
 
-The Docker container connects to your local Ollama installation using `host.docker.internal`, which allows the container to access services running on your host machine.
+The container connects to your local Ollama installation using special hostnames:
+- **Docker**: `host.docker.internal`
+- **Podman**: `host.containers.internal`
 
 The connection is configured in `docker-compose.yml`:
 ```yaml
 environment:
-  - OLLAMA_HOST=http://host.docker.internal:11434
+  # Works for both Docker and Podman
+  - OLLAMA_HOST=http://host.containers.internal:11434
 extra_hosts:
-  - "host.docker.internal:host-gateway"
+  - "host.containers.internal:host-gateway"
 ```
+
+> **Note**: `host.containers.internal` works for both Docker (with recent versions) and Podman.
 
 ### Persistent Directories
 
@@ -55,6 +79,8 @@ The following directories are mounted as volumes, so data persists outside the c
 - `./embeddings` - Vector embeddings for semantic search
 
 These directories are created automatically if they don't exist.
+
+> **Podman Note**: Volumes are mounted with `:Z` flag for SELinux compatibility.
 
 ## Using the Web Application
 
@@ -106,7 +132,8 @@ Edit `config.yaml` to customize:
 **Solutions**:
 1. Ensure Ollama is running: `ollama list`
 2. Check Ollama is accessible: `curl http://localhost:11434/api/tags`
-3. On Linux, you may need to use `host.docker.internal` or your machine's IP address
+3. For Docker on Linux, you may need to use your machine's IP address instead of `host.containers.internal`
+4. For Podman, `host.containers.internal` should work automatically
 
 ### Port Already in Use
 
@@ -166,11 +193,11 @@ For production use:
 
 View container logs:
 ```bash
-# Follow logs in real-time
+# For Docker:
 docker-compose logs -f
 
-# View specific service logs
-docker-compose logs web
+# For Podman:
+podman-compose logs -f
 ```
 
 Application logs are also saved in the `./logs` directory.
@@ -184,8 +211,13 @@ To update the application:
 git pull
 
 # Rebuild and restart
+# For Docker:
 docker-compose down
 docker-compose up --build
+
+# For Podman:
+podman-compose down
+podman-compose up --build
 ```
 
 ## Health Check
@@ -199,6 +231,7 @@ Docker will automatically restart the container if health checks fail.
 ## Support
 
 For issues or questions:
-1. Check the logs: `docker-compose logs`
+1. Check the logs: `docker-compose logs` or `podman-compose logs`
 2. Verify Ollama is running: `ollama list`
-3. Check the main README.md for general usage information
+3. For Podman-specific issues, see [README-PODMAN.md](README-PODMAN.md)
+4. Check the main [README.md](README.md) for general usage information
