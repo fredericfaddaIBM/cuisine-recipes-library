@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.titre or recipe.title }} - Bibliothèque de Recettes{% endblock %}
+
+{% block content %}
+<div class="recipe-view">
+    <div class="recipe-header">
+        <h1>{{ recipe.titre or recipe.title }}</h1>
+        <div class="recipe-actions">
+            <a href="/recipe/{{ recipe_id }}/edit" class="btn btn-secondary">Modifier la Recette</a>
+            <a href="/recipes" class="btn btn-secondary">Retour à la Liste</a>
+        </div>
+    </div>
+
+    <div class="recipe-content-grid">
+        <!-- Left side: Recipe details -->
+        <div class="recipe-details">
+            <div class="recipe-meta-grid">
+                <div class="meta-item">
+                    <strong>Cuisine :</strong>
+                    <span>{{ recipe.cuisine or 'Inconnu' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Difficulté :</strong>
+                    <span>{{ recipe.difficulte or recipe.difficulty or 'Inconnu' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Temps de Préparation :</strong>
+                    <span>{{ recipe.temps_preparation or recipe.prep_time or 'Inconnu' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Temps de Cuisson :</strong>
+                    <span>{{ recipe.temps_cuisson or recipe.cook_time or 'Inconnu' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Temps Total :</strong>
+                    <span>{{ recipe.temps_total or recipe.total_time or 'Inconnu' }}</span>
+                </div>
+                <div class="meta-item">
+                    <strong>Portions :</strong>
+                    <span>{{ recipe.portions or recipe.servings or 'Inconnu' }}</span>
+                </div>
+            </div>
+
+            {% if recipe.tags_dietetiques or recipe.dietary_tags %}
+            <div class="recipe-tags">
+                <strong>Diététique :</strong>
+                {% for tag in (recipe.tags_dietetiques or recipe.dietary_tags) %}
+                <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if recipe.allergenes or recipe.allergens %}
+            <div class="recipe-allergens">
+                <strong>⚠️ Allergènes :</strong>
+                {% for allergen in (recipe.allergenes or recipe.allergens) %}
+                <span class="tag tag-warning">{{ allergen }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="recipe-markdown">
+                {{ recipe.content_html | safe }}
+            </div>
+        </div>
+
+        <!-- Right side: Original image -->
+        <div class="recipe-image-panel">
+            <h3>Image Originale</h3>
+            {% if recipe.image_source %}
+            <div class="image-container" style="cursor: pointer;" onclick='openImageInNewWindow("/images/{{ recipe.image_source }}", {{ (recipe.titre or recipe.title) | tojson }})' title="Cliquez pour voir en taille réelle">
+                <img src="/images/{{ recipe.image_source }}" alt="{{ recipe.titre or recipe.title }}" class="recipe-image">
+            </div>
+            {% else %}
+            <p class="no-image">Aucune image disponible</p>
+            {% endif %}
+
+            {% if recipe.necessite_revision or recipe.needs_review %}
+            <div class="alert alert-warning">
+                <strong>⚠️ Nécessite une Révision</strong>
+                <p>Cette recette a été signalée pour révision manuelle en raison d'un score de confiance faible.</p>
+            </div>
+            {% endif %}
+
+            <div class="recipe-info-box">
+                <h4>Informations sur la Recette</h4>
+                <p><strong>Ajoutée :</strong> {{ recipe.date_ajout or recipe.date_added or 'Inconnu' }}</p>
+                {% if recipe.score_confiance or recipe.confidence_score %}
+                <p><strong>Confiance :</strong> {{ "%.0f"|format((recipe.score_confiance or recipe.confidence_score) * 100) }}%</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.recipe-view {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.recipe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.recipe-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.recipe-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+}
+
+.recipe-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.meta-item strong {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.recipe-tags, .recipe-allergens {
+    margin-bottom: 1.5rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag-warning {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.recipe-markdown {
+    line-height: 1.8;
+}
+
+.recipe-markdown h1 {
+    font-size: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.recipe-markdown h2 {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: #333;
+}
+
+.recipe-markdown ul, .recipe-markdown ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.recipe-markdown li {
+    margin-bottom: 0.5rem;
+}
+
+.recipe-image-panel {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+}
+
+.image-container {
+    margin-bottom: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.recipe-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.no-image {
+    padding: 3rem;
+    text-align: center;
+    background: #f5f5f5;
+    border-radius: 8px;
+    color: #999;
+}
+
+.recipe-info-box {
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.recipe-info-box h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.recipe-info-box p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 1024px) {
+    .recipe-content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .recipe-image-panel {
+        position: static;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% raw %}
+function openImageInNewWindow(imageUrl, title) {
+    const newWindow = window.open('', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+    
+    if (newWindow) {
+        // Sanitize inputs
+        const safeTitle = title.replace(/[<>"'&]/g, '');
+        const safeImageUrl = imageUrl.replace(/[<>"'&]/g, '');
+        
+        // Build HTML using template literals
+        const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${safeTitle} - Image</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .header { color: white; text-align: center; margin-bottom: 20px; width: 100%; }
+        .header h1 { margin: 0 0 10px 0; font-size: 1.5rem; }
+        .header p { margin: 0; color: #999; font-size: 0.9rem; }
+        .image-wrapper { max-width: 100%; max-height: calc(100vh - 120px); display: flex; align-items: center; justify-content: center; }
+        img { max-width: 100%; max-height: calc(100vh - 120px); width: auto; height: auto; object-fit: contain; box-shadow: 0 4px 20px rgba(0,0,0,0.5); border-radius: 4px; }
+        .controls { margin-top: 20px; display: flex; gap: 10px; }
+        button { padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+        button:hover { background: #1976D2; }
+        button.secondary { background: #666; }
+        button.secondary:hover { background: #555; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>${safeTitle}</h1>
+        <p>Image de la recette en taille réelle</p>
+    </div>
+    <div class="image-wrapper">
+        <img src="${safeImageUrl}" alt="${safeTitle}" id="recipeImage">
+    </div>
+    <div class="controls">
+        <button onclick="downloadImage()">📥 Télécharger</button>
+        <button onclick="window.print()">🖨️ Imprimer</button>
+        <button class="secondary" onclick="window.close()">✕ Fermer</button>
+    </div>
+    <script>
+        const imgUrl = "${safeImageUrl}";
+        const imgTitle = "${safeTitle}";
+        
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.href = imgUrl;
+            // Extract file extension from URL
+            const ext = imgUrl.split('.').pop().toLowerCase();
+            link.download = imgTitle + '.' + ext;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Allow closing with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.close();
+            }
+        });
+    <\/script>
+</body>
+</html>`;
+        
+        newWindow.document.write(html);
+        newWindow.document.close();
+    } else {
+        alert('Veuillez autoriser les fenêtres pop-up pour voir l\'image en taille réelle.');
+    }
+}
+{% endraw %}
+</script>
+{% endblock %}

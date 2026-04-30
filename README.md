@@ -408,10 +408,43 @@ python3 scripts/search_recipes.py --semantic "pasta" --details
 python3 scripts/search_recipes.py --semantic "italian" > italian-recipes.txt
 ```
 
+## Web Application (Docker/Podman)
+
+A web interface is now available! Run the application in a container with access to your local Ollama installation.
+
+### Quick Start
+
+```bash
+# Start the web application (auto-detects Docker or Podman)
+./start-docker.sh
+
+# Or manually:
+# For Docker:
+docker-compose up --build
+
+# For Podman:
+podman-compose up --build
+```
+
+The web application will be available at: **http://localhost:26574**
+
+### Features
+
+- 📤 **Upload Images**: Drag and drop recipe images for automatic processing
+- ✏️ **Edit Recipes**: Modify markdown files directly in the browser
+- 🔍 **Advanced Search**: Use semantic search with multiple filter options
+- 👁️ **Side-by-Side View**: See markdown and original image together
+- 🔄 **Auto-Processing**: Uploads trigger automatic text extraction and embedding generation
+
+### Documentation
+
+- [README-DOCKER.md](README-DOCKER.md) - Docker/Podman setup guide
+- [README-PODMAN.md](README-PODMAN.md) - Podman-specific details
+
 ## Future Enhancements
 
 Potential additions:
-- [ ] Web interface for easier searching
+- [x] Web interface for easier searching
 - [ ] Recipe recommendations based on cooking history
 - [ ] Nutritional information extraction
 - [ ] Shopping list generation

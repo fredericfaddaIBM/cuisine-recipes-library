@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Bibliothèque de Recettes{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Bienvenue dans la Bibliothèque de Recettes</h1>
+    <p>Gérez vos recettes avec traitement d'images par IA et recherche sémantique</p>
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <h2>📤 Télécharger des Images</h2>
+        <p>Téléchargez des images de recettes et laissez l'IA extraire automatiquement les détails</p>
+        <a href="/upload" class="btn btn-primary">Télécharger une Recette</a>
+    </div>
+
+    <div class="feature-card">
+        <h2>🔍 Rechercher des Recettes</h2>
+        <p>Trouvez des recettes par recherche sémantique ou filtrez par ingrédients, cuisine, etc.</p>
+        <a href="/search" class="btn btn-primary">Rechercher des Recettes</a>
+    </div>
+
+    <div class="feature-card">
+        <h2>📚 Parcourir Tout</h2>
+        <p>Consultez toutes vos recettes en un seul endroit</p>
+        <a href="/recipes" class="btn btn-primary">Voir Toutes les Recettes</a>
+    </div>
+</div>
+
+<div class="stats">
+    <h2>Statistiques Rapides</h2>
+    <div class="stats-grid" id="stats">
+        <div class="stat-item">
+            <span class="stat-number" id="total-recipes">-</span>
+            <span class="stat-label">Recettes Totales</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load stats
+fetch('/recipes')
+    .then(response => response.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const recipeCards = doc.querySelectorAll('.recipe-card');
+        document.getElementById('total-recipes').textContent = recipeCards.length;
+    })
+    .catch(error => console.error('Erreur lors du chargement des statistiques:', error));
+</script>
+{% endblock %}

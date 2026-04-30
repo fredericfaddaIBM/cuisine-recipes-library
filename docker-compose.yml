@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "26574:5000"
+    volumes:
+      # Persistent directories outside container
+      - ./images:/app/images:Z
+      - ./recipes:/app/recipes:Z
+      - ./logs:/app/logs:Z
+      - ./json-extract:/app/json-extract:Z
+      - ./embeddings:/app/embeddings:Z
+      # Mount config file
+      - ./config.yaml:/app/config.yaml:Z
+    environment:
+      - FLASK_ENV=production
+      # Connect to Ollama running on host machine
+      # For Podman on macOS: use host.docker.internal (works in Podman machine)
+      # For Docker: use host.docker.internal
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Made with Bob
