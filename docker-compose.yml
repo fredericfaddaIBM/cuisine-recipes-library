@@ -4,7 +4,7 @@ services:
   web:
     build: .
     ports:
-      - "5000:5000"
+      - "26574:5000"
     volumes:
       # Persistent directories outside container
       - ./images:/app/images:Z

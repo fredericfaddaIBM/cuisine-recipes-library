@@ -79,6 +79,8 @@ mkdir -p images recipes logs json-extract embeddings templates static
 
 # Build and start the container
 echo ""
+echo "📝 Note: Web application will be available at http://localhost:26574"
+echo ""
 echo "Building and starting container with $COMPOSE_CMD..."
 $COMPOSE_CMD up --build
 

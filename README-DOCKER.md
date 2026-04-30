@@ -37,7 +37,7 @@ docker-compose up --build
 podman-compose up --build
 ```
 
-The web application will be available at: **http://localhost:5000**
+The web application will be available at: **http://localhost:26574**
 
 ### 2. Stop the Container
 
@@ -137,12 +137,12 @@ Edit `config.yaml` to customize:
 
 ### Port Already in Use
 
-**Problem**: Port 5000 is already in use
+**Problem**: Port 26574 is already in use
 
 **Solution**: Change the port in `docker-compose.yml`:
 ```yaml
 ports:
-  - "8080:5000"  # Use port 8080 instead
+  - "8080:5000"  # Use port 8080 instead (maps host port 8080 to container port 5000)
 ```
 
 ### Models Not Found
@@ -223,7 +223,7 @@ podman-compose up --build
 ## Health Check
 
 The application includes a health check endpoint:
-- URL: http://localhost:5000/health
+- URL: http://localhost:26574/health
 - Returns: `{"status": "healthy"}`
 
 Docker will automatically restart the container if health checks fail.

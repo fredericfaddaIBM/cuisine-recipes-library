@@ -110,7 +110,7 @@ pip3 install podman-compose
 
 ### Access the Web Interface
 
-Open your browser to: **http://localhost:5000**
+Open your browser to: **http://localhost:26574**
 
 ### Stop the Application
 
@@ -145,7 +145,7 @@ podman-compose down
 
 ```
 ┌─────────────────────────────────────────┐
-│         Web Browser (localhost:5000)     │
+│         Web Browser (localhost:26574)    │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
@@ -194,11 +194,11 @@ Edit `config.yaml` to customize:
 - Check connection: `curl http://localhost:11434/api/tags`
 - For Podman, verify `host.containers.internal` is accessible
 
-### Port 5000 already in use
+### Port 26574 already in use
 Edit `docker-compose.yml` and change the port mapping:
 ```yaml
 ports:
-  - "8080:5000"  # Use port 8080 instead
+  - "8080:5000"  # Use port 8080 instead (maps host port 8080 to container port 5000)
 ```
 
 ### Permission issues (Podman/SELinux)

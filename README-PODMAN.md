@@ -73,7 +73,7 @@ podman machine start
 podman-compose up --build
 ```
 
-The web application will be available at: **http://localhost:5000**
+The web application will be available at: **http://localhost:26574**
 
 ### 4. Stop the Container
 
