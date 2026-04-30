@@ -11,6 +11,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
 from werkzeug.utils import secure_filename
 import frontmatter
+import markdown
 
 # Import our existing scripts
 from scripts.process_images import RecipeProcessor
@@ -163,6 +164,13 @@ def view_recipe(recipe_id):
     recipe = searcher._load_recipe(str(recipe_file))
     if not recipe:
         return "Error loading recipe", 500
+    
+    # Convert markdown content to HTML
+    if recipe.get('content'):
+        md = markdown.Markdown(extensions=['extra', 'nl2br', 'sane_lists'])
+        recipe['content_html'] = md.convert(recipe['content'])
+    else:
+        recipe['content_html'] = ''
     
     return render_template('recipe.html', recipe=recipe, recipe_id=recipe_id)
 
