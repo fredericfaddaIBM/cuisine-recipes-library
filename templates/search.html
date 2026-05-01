@@ -73,20 +73,73 @@
         </div>
 
         <div class="form-actions">
+            <div class="form-group per-page-control">
+                <label for="perPage">Recettes par page</label>
+                <select id="perPage" name="per_page">
+                    {% for option in per_page_options %}
+                    <option value="{{ option }}" {% if option == default_per_page %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <button type="submit" class="btn btn-primary">Rechercher</button>
             <button type="button" class="btn btn-secondary" onclick="resetForm()">Réinitialiser</button>
         </div>
     </form>
 
     <div id="results" class="results-container" style="display: none;">
-        <h2>Résultats (<span id="resultCount">0</span>)</h2>
+        <div class="results-header">
+            <h2>Résultats (<span id="resultCount">0</span>)</h2>
+            <p id="paginationSummary"></p>
+        </div>
         <div id="resultsList" class="results-grid"></div>
+        <div id="searchPagination" class="pagination" style="display: none;">
+            <button type="button" id="prevPageBtn" class="btn btn-secondary">← Précédent</button>
+            <span id="paginationStatus" class="pagination-status"></span>
+            <button type="button" id="nextPageBtn" class="btn btn-secondary">Suivant →</button>
+        </div>
     </div>
 
     <div id="loading" class="loading" style="display: none;">
         <p>Recherche en cours...</p>
     </div>
 </div>
+
+<style>
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.per-page-control {
+    min-width: 180px;
+}
+
+.per-page-control select {
+    width: 100%;
+}
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.pagination-status,
+#paginationSummary {
+    color: #666;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+</style>
 
 <script>
 // Load search options
@@ -118,17 +171,38 @@ async function loadSearchOptions() {
 }
 
 // Search form submission
+let currentSearchPage = 1;
+let currentSearchFilters = null;
+let currentPagination = null;
+
 document.getElementById('searchForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+    currentSearchPage = 1;
+    await performSearch(currentSearchPage);
+});
+
+document.getElementById('prevPageBtn').addEventListener('click', async () => {
+    if (currentPagination && currentPagination.has_prev) {
+        currentSearchPage -= 1;
+        await performSearch(currentSearchPage);
+    }
+});
+
+document.getElementById('nextPageBtn').addEventListener('click', async () => {
+    if (currentPagination && currentPagination.has_next) {
+        currentSearchPage += 1;
+        await performSearch(currentSearchPage);
+    }
+});
+
+async function performSearch(page = 1) {
     const loading = document.getElementById('loading');
     const results = document.getElementById('results');
-    
+
     loading.style.display = 'block';
     results.style.display = 'none';
-    
-    // Gather form data
-    const formData = {
+
+    currentSearchFilters = {
         semantic_query: document.getElementById('semanticQuery').value || null,
         ingredients: document.getElementById('ingredients').value.split(',').map(s => s.trim()).filter(s => s),
         exclude_ingredients: document.getElementById('excludeIngredients').value.split(',').map(s => s.trim()).filter(s => s),
@@ -137,22 +211,24 @@ document.getElementById('searchForm').addEventListener('submit', async (e) => {
         meal_type: document.getElementById('mealType').value || null,
         difficulty: document.getElementById('difficulty').value || null,
         max_time: document.getElementById('maxTime').value || null,
-        limit: 20
+        page,
+        per_page: document.getElementById('perPage').value
     };
-    
+
     try {
         const response = await fetch('/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(currentSearchFilters)
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
-            displayResults(data.results);
+            currentPagination = data.pagination;
+            displayResults(data.results, data.pagination);
         } else {
             alert('Échec de la recherche : ' + data.error);
         }
@@ -161,18 +237,34 @@ document.getElementById('searchForm').addEventListener('submit', async (e) => {
     } finally {
         loading.style.display = 'none';
     }
-});
+}
 
-function displayResults(recipes) {
+function displayResults(recipes, pagination) {
     const results = document.getElementById('results');
     const resultsList = document.getElementById('resultsList');
     const resultCount = document.getElementById('resultCount');
-    
-    resultCount.textContent = recipes.length;
-    
+    const paginationSummary = document.getElementById('paginationSummary');
+    const paginationStatus = document.getElementById('paginationStatus');
+    const searchPagination = document.getElementById('searchPagination');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+
+    resultCount.textContent = pagination.total_results;
+
     if (recipes.length === 0) {
         resultsList.innerHTML = '<p class="no-results">Aucune recette trouvée correspondant à vos critères.</p>';
+        paginationSummary.textContent = 'Aucun résultat à afficher.';
+        searchPagination.style.display = 'none';
     } else {
+        const start = ((pagination.page - 1) * pagination.per_page) + 1;
+        const end = start + recipes.length - 1;
+
+        paginationSummary.textContent = `Affichage de ${start} à ${end} sur ${pagination.total_results} résultats.`;
+        paginationStatus.textContent = `Page ${pagination.page} sur ${pagination.total_pages || 1}`;
+        prevPageBtn.disabled = !pagination.has_prev;
+        nextPageBtn.disabled = !pagination.has_next;
+        searchPagination.style.display = pagination.total_pages > 1 ? 'flex' : 'none';
+
         resultsList.innerHTML = recipes.map(recipe => `
             <div class="recipe-card">
                 ${recipe.image ? `<img src="/images/${recipe.image}" alt="${recipe.title}">` : ''}
@@ -193,13 +285,17 @@ function displayResults(recipes) {
             </div>
         `).join('');
     }
-    
+
     results.style.display = 'block';
 }
 
 function resetForm() {
     document.getElementById('searchForm').reset();
+    document.getElementById('perPage').value = '{{ default_per_page }}';
     document.getElementById('results').style.display = 'none';
+    currentSearchPage = 1;
+    currentSearchFilters = null;
+    currentPagination = null;
 }
 
 // Load options on page load

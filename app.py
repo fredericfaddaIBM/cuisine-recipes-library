@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
+from math import ceil
 from werkzeug.utils import secure_filename
 import frontmatter
 import markdown
@@ -32,6 +33,29 @@ def allowed_file(filename):
     """Check if file extension is allowed."""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
+def get_pagination_args(default_per_page=4):
+    """Extract and sanitize pagination parameters from request args/json."""
+    data = request.json if request.is_json else request.args
+
+    page = data.get('page', 1)
+    per_page = data.get('per_page', default_per_page)
+
+    try:
+        page = max(int(page), 1)
+    except (TypeError, ValueError):
+        page = 1
+
+    allowed_per_page_values = [4, 10, 20, 50, 100]
+    try:
+        per_page = int(per_page)
+        if per_page not in allowed_per_page_values:
+            per_page = default_per_page
+    except (TypeError, ValueError):
+        per_page = default_per_page
+
+    return page, per_page, allowed_per_page_values
 
 
 @app.route('/')
@@ -94,7 +118,8 @@ def search():
     """Search page for recipes."""
     if request.method == 'POST':
         data = request.json
-        
+        page, per_page, allowed_per_page_values = get_pagination_args()
+
         # Extract search parameters
         semantic_query = data.get('semantic_query')
         ingredients = data.get('ingredients', [])
@@ -104,8 +129,7 @@ def search():
         max_time = data.get('max_time')
         difficulty = data.get('difficulty')
         exclude_ingredients = data.get('exclude_ingredients', [])
-        limit = data.get('limit', 10)
-        
+
         # Perform search
         try:
             results = searcher.hybrid_search(
@@ -117,12 +141,18 @@ def search():
                 max_time=int(max_time) if max_time else None,
                 difficulty=difficulty,
                 exclude_ingredients=exclude_ingredients if exclude_ingredients else None,
-                limit=limit
+                limit=1000
             )
-            
+
+            total_results = len(results)
+            total_pages = ceil(total_results / per_page) if total_results else 0
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            paginated_results = results[start_idx:end_idx]
+
             # Format results
             formatted_results = []
-            for recipe_id, score in results:
+            for recipe_id, score in paginated_results:
                 recipe_file = Path(app.config['RECIPES_FOLDER']) / f"{recipe_id}.md"
                 if recipe_file.exists():
                     recipe = searcher._load_recipe(str(recipe_file))
@@ -137,19 +167,34 @@ def search():
                             'score': round(score * 100, 1),
                             'image': recipe.get('image_source', '')
                         })
-            
+
             return jsonify({
                 'success': True,
                 'results': formatted_results,
-                'count': len(formatted_results)
+                'count': total_results,
+                'pagination': {
+                    'page': page,
+                    'per_page': per_page,
+                    'total_pages': total_pages,
+                    'total_results': total_results,
+                    'has_prev': page > 1,
+                    'has_next': page < total_pages,
+                    'allowed_per_page_values': allowed_per_page_values
+                }
             })
         except Exception as e:
             return jsonify({
                 'success': False,
                 'error': str(e)
             }), 500
-    
-    return render_template('search.html')
+
+    _, default_per_page, allowed_per_page_values = get_pagination_args()
+
+    return render_template(
+        'search.html',
+        default_per_page=default_per_page,
+        per_page_options=allowed_per_page_values
+    )
 
 
 @app.route('/recipe/<recipe_id>')
@@ -233,9 +278,10 @@ def edit_recipe(recipe_id):
 @app.route('/recipes')
 def list_recipes():
     """List all recipes."""
+    page, per_page, allowed_per_page_values = get_pagination_args()
     recipes_dir = Path(app.config['RECIPES_FOLDER'])
     recipe_files = list(recipes_dir.glob('*.md'))
-    
+
     recipes = []
     for recipe_file in recipe_files:
         recipe = searcher._load_recipe(str(recipe_file))
@@ -248,11 +294,39 @@ def list_recipes():
                 'difficulty': recipe.get('difficulte', recipe.get('difficulty', 'Unknown')),
                 'image': recipe.get('image_source', '')
             })
-    
+
     # Sort by title
     recipes.sort(key=lambda x: x['title'])
-    
-    return render_template('recipes.html', recipes=recipes)
+
+    total_recipes = len(recipes)
+    total_pages = ceil(total_recipes / per_page) if total_recipes else 0
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_recipes = recipes[start_idx:end_idx]
+
+    return render_template(
+        'recipes.html',
+        recipes=paginated_recipes,
+        total_recipes=total_recipes,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages,
+        has_prev=page > 1,
+        has_next=page < total_pages,
+        per_page_options=allowed_per_page_values
+    )
+
+
+@app.route('/api/recipes/count')
+def recipes_count():
+    """Return the total number of recipes."""
+    recipes_dir = Path(app.config['RECIPES_FOLDER'])
+    total_recipes = len(list(recipes_dir.glob('*.md')))
+
+    return jsonify({
+        'success': True,
+        'count': total_recipes
+    })
 
 
 @app.route('/images/<filename>')

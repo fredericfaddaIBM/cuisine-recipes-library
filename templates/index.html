@@ -33,20 +33,19 @@
     <div class="stats-grid" id="stats">
         <div class="stat-item">
             <span class="stat-number" id="total-recipes">-</span>
-            <span class="stat-label">Recettes Totales</span>
+            <span class="stat-label">Recettes au total</span>
         </div>
     </div>
 </div>
 
 <script>
 // Load stats
-fetch('/recipes')
-    .then(response => response.text())
-    .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const recipeCards = doc.querySelectorAll('.recipe-card');
-        document.getElementById('total-recipes').textContent = recipeCards.length;
+fetch('/api/recipes/count')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('total-recipes').textContent = data.count;
+        }
     })
     .catch(error => console.error('Erreur lors du chargement des statistiques:', error));
 </script>

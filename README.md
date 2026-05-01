@@ -44,7 +44,7 @@ pip3 install -r requirements.txt
 
 ```bash
 # Install vision model for recipe extraction (choose one)
-ollama run qwen2.5vl           # Recommended (text extraction efficiency)
+ollama pull qwen2.5vl           # Recommended (text extraction efficiency)
 # OR
 ollama pull llama3.2-vision    # (11B params)
 # OR
