@@ -8,6 +8,7 @@
         <h1>{{ recipe.titre or recipe.title }}</h1>
         <div class="recipe-actions">
             <a href="/recipe/{{ recipe_id }}/edit" class="btn btn-secondary">Modifier la Recette</a>
+            <button onclick="confirmDelete()" class="btn btn-danger">Supprimer la Recette</button>
             <a href="/recipes" class="btn btn-secondary">Retour à la Liste</a>
         </div>
     </div>
@@ -112,6 +113,21 @@
 .recipe-actions {
     display: flex;
     gap: 1rem;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
 }
 
 .recipe-content-grid {
@@ -244,6 +260,57 @@
 
 {% block extra_js %}
 <script>
+async function confirmDelete() {
+    const recipeName = {{ (recipe.titre or recipe.title) | tojson }};
+    const recipeId = {{ recipe_id | tojson }};
+    
+    // Show confirmation dialog
+    const confirmed = confirm(
+        `⚠️ ATTENTION ⚠️\n\n` +
+        `Êtes-vous sûr de vouloir supprimer la recette :\n"${recipeName}" ?\n\n` +
+        `Cette action supprimera :\n` +
+        `• Le fichier de la recette\n` +
+        `• L'image associée\n` +
+        `• Les données d'embedding\n\n` +
+        `Cette action est IRRÉVERSIBLE !`
+    );
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    // Second confirmation for safety
+    const doubleConfirm = confirm(
+        `Dernière confirmation :\n\n` +
+        `Voulez-vous vraiment supprimer "${recipeName}" ?\n\n` +
+        `Cliquez sur OK pour confirmer la suppression définitive.`
+    );
+    
+    if (!doubleConfirm) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/recipe/${recipeId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ ' + data.message + '\n\nRedirection vers la liste des recettes...');
+            window.location.href = '/recipes';
+        } else {
+            alert('❌ Erreur : ' + data.error);
+        }
+    } catch (error) {
+        alert('❌ Erreur lors de la suppression : ' + error.message);
+    }
+}
+
 {% raw %}
 function openImageInNewWindow(imageUrl, title) {
     const newWindow = window.open('', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');

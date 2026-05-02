@@ -381,6 +381,63 @@ def edit_recipe(recipe_id):
         logger.error(f"Error loading recipe for edit {recipe_id}: {e}", exc_info=True)
         abort(500, "An error occurred loading the recipe")
 
+@app.route('/recipe/<recipe_id>/delete', methods=['POST'])
+def delete_recipe(recipe_id):
+    """Delete a recipe and its associated image."""
+    # SECURITY: Validate recipe_id to prevent path traversal
+    if not validate_recipe_id(recipe_id):
+        logger.warning(f"Invalid recipe_id attempted in delete: {recipe_id}")
+        return jsonify({
+            'success': False,
+            'error': 'Invalid recipe ID'
+        }), 400
+    
+    # SECURITY: Use safe_join to prevent path traversal
+    recipe_file = safe_join(app.config['RECIPES_FOLDER'], f"{recipe_id}.md")
+    if recipe_file is None or not os.path.exists(recipe_file):
+        return jsonify({
+            'success': False,
+            'error': 'Recipe not found'
+        }), 404
+    
+    try:
+        # Load recipe to get image filename
+        recipe = searcher._load_recipe(recipe_file)
+        image_filename = recipe.get('image_source') if recipe else None
+        
+        # Delete recipe file
+        os.remove(recipe_file)
+        logger.info(f"Deleted recipe file: {recipe_id}")
+        
+        # Delete associated image if it exists
+        if image_filename:
+            image_path = safe_join(app.config['UPLOAD_FOLDER'], image_filename)
+            if image_path and os.path.exists(image_path):
+                os.remove(image_path)
+                logger.info(f"Deleted image file: {image_filename}")
+        
+        # Remove from embeddings database
+        if recipe_id in processor.embeddings_db.get('recipes', {}):
+            del processor.embeddings_db['recipes'][recipe_id]
+            if recipe_id in processor.embeddings_db.get('metadata', {}):
+                del processor.embeddings_db['metadata'][recipe_id]
+            processor._save_embeddings()
+            logger.info(f"Removed embeddings for recipe: {recipe_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Recipe deleted successfully'
+        })
+        
+    except Exception as e:
+        # SECURITY FIX: Proper error handling
+        logger.error(f"Error deleting recipe {recipe_id}: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': 'An error occurred deleting the recipe. Please try again.'
+        }), 500
+
+
 
 @app.route('/recipes')
 def list_recipes():
