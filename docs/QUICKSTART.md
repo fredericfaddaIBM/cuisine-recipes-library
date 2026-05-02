@@ -93,8 +93,8 @@ python3 scripts/search_recipes.py --similar recipe-name
 
 ## Need Help?
 
-- **Full documentation**: See [README.md](README.md)
-- **Setup issues**: See [SETUP.md](SETUP.md)
+- **Full documentation**: See [`README.md`](../README.md)
+- **Setup issues**: See [`SETUP.md`](./SETUP.md)
 - **Configuration**: Edit `config.yaml`
 
 ## Tips

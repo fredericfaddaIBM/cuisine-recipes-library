@@ -233,9 +233,9 @@ pip3 install podman-compose
 
 ## Support
 
-- See [README-DOCKER.md](README-DOCKER.md) for Docker/Podman documentation
-- See [README-PODMAN.md](README-PODMAN.md) for Podman-specific details
-- See [README.md](README.md) for general usage information
+- See [`README-DOCKER.md`](./README-DOCKER.md) for Docker/Podman documentation
+- See [`README-PODMAN.md`](./README-PODMAN.md) for Podman-specific details
+- See [`README.md`](../README.md) for general usage information
 - Check logs in `./logs/` directory for debugging
 
 ---
