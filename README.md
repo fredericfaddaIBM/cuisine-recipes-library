@@ -450,6 +450,41 @@ The web application will be available at: **http://localhost:26574**
 - [`README-DOCKER.md`](docs/README-DOCKER.md) - Docker/Podman setup guide
 - [`README-PODMAN.md`](docs/README-PODMAN.md) - Podman-specific details
 
+## Security
+
+⚠️ **Important Security Notice**
+
+This application is designed for **local, personal use only**. If you plan to use this application in a production environment (including personal production use, remote access, or multi-user scenarios), please review the security documentation:
+
+- **[Security Review](docs/SECURITY-REVIEW.md)** - Comprehensive security audit identifying 15 vulnerabilities
+- **[Security Fixes Implementation](docs/SECURITY-FIXES-IMPLEMENTATION.md)** - Guide for implemented fixes
+
+### Current Security Status
+
+✅ **Implemented Fixes** (as of 2026-05-02):
+- Path traversal protection
+- File upload content validation
+- Proper error handling
+
+⚠️ **Remaining Issues for Production Use**:
+- No authentication/authorization
+- No CSRF protection
+- No rate limiting
+- Debug mode enabled by default
+- Missing security headers
+
+**Recommendation**: For production use, implement all security fixes outlined in the [Security Review](docs/SECURITY-REVIEW.md) document, particularly authentication, CSRF protection, and rate limiting.
+
+### Quick Security Setup
+
+```bash
+# Install security fixes
+./install-security-fixes.sh
+
+# Review security documentation
+cat docs/SECURITY-REVIEW.md
+```
+
 ## Future Enhancements
 
 Potential additions:
