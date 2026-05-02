@@ -4,8 +4,8 @@
 
 {% block content %}
 <div class="upload-container">
-    <h1>Télécharger une Image de Recette</h1>
-    <p>Téléchargez une image de recette et laissez l'IA extraire automatiquement les détails</p>
+    <h1>Télécharger une Recette</h1>
+    <p>Téléchargez une image ou un PDF de recette et laissez l'IA extraire automatiquement les détails</p>
 
     <div class="upload-area" id="uploadArea">
         <form id="uploadForm" enctype="multipart/form-data">
@@ -15,8 +15,8 @@
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <p>Glissez-déposez une image ici ou cliquez pour parcourir</p>
-                <input type="file" id="fileInput" name="file" accept="image/*,.heic,.heif" style="display: none;">
+                <p>Glissez-déposez une image ou un PDF ici ou cliquez pour parcourir</p>
+                <input type="file" id="fileInput" name="file" accept="image/*,.heic,.heif,.pdf,application/pdf" style="display: none;">
                 <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
                     Choisir un Fichier
                 </button>
@@ -85,14 +85,23 @@ fileInput.addEventListener('change', (e) => {
 function handleFile(file) {
     fileName.textContent = file.name;
     
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        previewImage.src = e.target.result;
+    // Check if it's a PDF
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        // For PDFs, show file name without image preview
+        previewImage.style.display = 'none';
         preview.style.display = 'block';
         uploadBtn.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+    } else {
+        // Show image preview
+        previewImage.style.display = 'block';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImage.src = e.target.result;
+            preview.style.display = 'block';
+            uploadBtn.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
 uploadForm.addEventListener('submit', async (e) => {

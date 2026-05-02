@@ -97,15 +97,16 @@ cuisine-recipes-library/
 
 ## Quick Start
 
-### 1. Add Recipe Images
+### 1. Add Recipe Images or PDFs
 
-Place your recipe photos in the `images/` directory:
+Place your recipe photos or PDF documents in the `images/` directory:
 
 ```bash
 cp ~/Pictures/recipe-photos/*.jpg images/
+cp ~/Documents/recipes/*.pdf images/
 ```
 
-Supported formats: JPG, JPEG, PNG, HEIC
+Supported formats: JPG, JPEG, PNG, HEIC, PDF
 
 ### 2. Process Images
 
@@ -439,11 +440,11 @@ The web application will be available at: **http://localhost:26574**
 
 ### Features
 
-- 📤 **Upload Images**: Drag and drop recipe images for automatic processing
+- 📤 **Upload Images & PDFs**: Drag and drop recipe images or PDF documents for automatic processing
 - ✏️ **Edit Recipes**: Modify markdown files directly in the browser
-- 🗑️ **Delete Recipes**: Remove recipes with confirmation (deletes recipe, image, and embeddings)
+- 🗑️ **Delete Recipes**: Remove recipes with confirmation (deletes recipe, document, and embeddings)
 - 🔍 **Advanced Search**: Use semantic search with multiple filter options
-- 👁️ **Side-by-Side View**: See markdown and original image together
+- 👁️ **Side-by-Side View**: See markdown and original document (image or PDF) together
 - 🔄 **Auto-Processing**: Uploads trigger automatic text extraction and embedding generation
 
 ### Documentation

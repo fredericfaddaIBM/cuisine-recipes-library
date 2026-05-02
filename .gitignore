@@ -29,6 +29,7 @@ images/*.jpeg
 images/*.png
 images/*.heic
 images/*.heif
+images/*.pdf
 recipes/*.md
 embeddings/*.json
 json-extract/*.json

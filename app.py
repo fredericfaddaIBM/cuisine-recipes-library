@@ -30,7 +30,7 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = './images'
 app.config['RECIPES_FOLDER'] = './recipes'
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'heic', 'heif'}
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'heic', 'heif', 'pdf'}
 
 # Initialize processors
 processor = RecipeProcessor()
@@ -55,6 +55,34 @@ def validate_filename(filename: str) -> bool:
         return False
     # Only allow alphanumeric, hyphens, underscores, and dots
     return bool(re.match(r'^[a-zA-Z0-9_.-]+$', filename))
+
+
+def validate_pdf_content(filepath: str) -> bool:
+    """
+    Validate that uploaded file is actually a PDF.
+    This prevents malicious files disguised as PDFs.
+    """
+    try:
+        # Try python-magic first (more reliable)
+        try:
+            import magic
+            mime = magic.from_file(filepath, mime=True)
+            if mime != 'application/pdf':
+                logger.warning(f"File {filepath} has invalid MIME type for PDF: {mime}")
+                return False
+        except ImportError:
+            # Fallback: check PDF header
+            logger.warning("python-magic not installed, using header check for PDF validation")
+            with open(filepath, 'rb') as f:
+                header = f.read(5)
+                if header != b'%PDF-':
+                    logger.warning(f"File {filepath} does not have valid PDF header")
+                    return False
+        
+        return True
+    except Exception as e:
+        logger.error(f"PDF validation failed for {filepath}: {e}")
+        return False
 
 
 def validate_image_content(filepath: str) -> bool:
@@ -86,6 +114,20 @@ def validate_image_content(filepath: str) -> bool:
     except Exception as e:
         logger.error(f"Image validation failed for {filepath}: {e}")
         return False
+
+
+def validate_file_content(filepath: str) -> bool:
+    """
+    Validate uploaded file content based on extension.
+    Supports images and PDFs.
+    """
+    ext = os.path.splitext(filepath)[1].lower()
+    
+    if ext == '.pdf':
+        return validate_pdf_content(filepath)
+    else:
+        # Assume it's an image
+        return validate_image_content(filepath)
 
 
 def allowed_file(filename):
@@ -125,7 +167,7 @@ def index():
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
-    """Upload page for images."""
+    """Upload page for images and PDFs."""
     if request.method == 'POST':
         if 'file' not in request.files:
             return jsonify({'error': 'No file part'}), 400
@@ -148,18 +190,18 @@ def upload():
                 # Save file temporarily
                 file.save(filepath)
                 
-                # SECURITY FIX: Validate file content is actually an image
-                if not validate_image_content(filepath):
+                # SECURITY FIX: Validate file content (image or PDF)
+                if not validate_file_content(filepath):
                     # Remove invalid file
                     if os.path.exists(filepath):
                         os.remove(filepath)
-                    logger.warning(f"Invalid image file rejected: {filename}")
+                    logger.warning(f"Invalid file rejected: {filename}")
                     return jsonify({
                         'success': False,
-                        'error': 'Invalid image file. File must be a valid image.'
+                        'error': 'Invalid file. File must be a valid image or PDF.'
                     }), 400
                 
-                # Process the image
+                # Process the file (image or PDF)
                 recipe_path = processor.process_image(filepath)
                 if recipe_path:
                     recipe_id = Path(recipe_path).stem
