@@ -88,7 +88,9 @@ cuisine-recipes-library/
 │   └── MACOS-LAUNCHAGENT.md     # macOS LaunchAgent configuration
 ├── scripts/
 │   ├── process_images.py   # Recipe extraction script
-│   └── search_recipes.py   # Recipe search utility
+│   ├── search_recipes.py   # Recipe search utility
+│   ├── macos-launch-recipe-library.sh  # macOS launch script
+│   └── com.cuisine-recipes-library.webapp.plist  # macOS LaunchAgent plist
 └── templates/
     └── recipe_template.md  # Markdown template
 ```
