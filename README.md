@@ -441,6 +441,7 @@ The web application will be available at: **http://localhost:26574**
 
 - 📤 **Upload Images**: Drag and drop recipe images for automatic processing
 - ✏️ **Edit Recipes**: Modify markdown files directly in the browser
+- 🗑️ **Delete Recipes**: Remove recipes with confirmation (deletes recipe, image, and embeddings)
 - 🔍 **Advanced Search**: Use semantic search with multiple filter options
 - 👁️ **Side-by-Side View**: See markdown and original image together
 - 🔄 **Auto-Processing**: Uploads trigger automatic text extraction and embedding generation
