@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.cuisine-recipes-library.webapp</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <string>-lc</string>
+      <string>PROJECT_DIR="/Users/fredericfadda/ffadev/cuisine-recipes-library"; "$PROJECT_DIR/scripts/macos-launch-recipe-library.sh"</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/fredericfadda/ffadev/cuisine-recipes-library/logs/macos-launchagent.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/fredericfadda/ffadev/cuisine-recipes-library/logs/macos-launchagent.err.log</string>
+  </dict>
+</plist>
