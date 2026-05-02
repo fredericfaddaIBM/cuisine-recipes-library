@@ -266,27 +266,17 @@ async function confirmDelete() {
     
     // Show confirmation dialog
     const confirmed = confirm(
-        `⚠️ ATTENTION ⚠️\n\n` +
-        `Êtes-vous sûr de vouloir supprimer la recette :\n"${recipeName}" ?\n\n` +
+        `⚠️ ATTENTION - Suppression Définitive ⚠️\n\n` +
+        `Voulez-vous vraiment supprimer la recette :\n"${recipeName}" ?\n\n` +
         `Cette action supprimera :\n` +
         `• Le fichier de la recette\n` +
         `• L'image associée\n` +
         `• Les données d'embedding\n\n` +
-        `Cette action est IRRÉVERSIBLE !`
+        `⚠️ Cette action est IRRÉVERSIBLE !\n\n` +
+        `Cliquez sur OK pour confirmer la suppression.`
     );
     
     if (!confirmed) {
-        return;
-    }
-    
-    // Second confirmation for safety
-    const doubleConfirm = confirm(
-        `Dernière confirmation :\n\n` +
-        `Voulez-vous vraiment supprimer "${recipeName}" ?\n\n` +
-        `Cliquez sur OK pour confirmer la suppression définitive.`
-    );
-    
-    if (!doubleConfirm) {
         return;
     }
     
