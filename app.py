@@ -6,17 +6,25 @@ Flask-based web interface for recipe management with image processing.
 
 import os
 import json
+import re
+import logging
 from pathlib import Path
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for, abort
 from math import ceil
 from werkzeug.utils import secure_filename
+from werkzeug.security import safe_join
 import frontmatter
 import markdown
+from PIL import Image
 
 # Import our existing scripts
 from scripts.process_images import RecipeProcessor
 from scripts.search_recipes import RecipeSearcher
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -27,6 +35,53 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'heic', 'heif'}
 # Initialize processors
 processor = RecipeProcessor()
 searcher = RecipeSearcher()
+
+
+def validate_recipe_id(recipe_id: str) -> bool:
+    """Validate recipe ID contains only safe characters to prevent path traversal."""
+    if not recipe_id:
+        return False
+    # Only allow alphanumeric, hyphens, and underscores
+    return bool(re.match(r'^[a-zA-Z0-9_-]+$', recipe_id))
+
+
+def validate_filename(filename: str) -> bool:
+    """Validate filename contains only safe characters."""
+    if not filename:
+        return False
+    # Only allow alphanumeric, hyphens, underscores, and dots
+    return bool(re.match(r'^[a-zA-Z0-9_.-]+$', filename))
+
+
+def validate_image_content(filepath: str) -> bool:
+    """
+    Validate that uploaded file is actually an image.
+    This prevents malicious files disguised as images.
+    """
+    try:
+        # Try python-magic first (more reliable)
+        try:
+            import magic
+            mime = magic.from_file(filepath, mime=True)
+            if not mime.startswith('image/'):
+                logger.warning(f"File {filepath} has invalid MIME type: {mime}")
+                return False
+        except ImportError:
+            # Fallback if python-magic not installed
+            logger.warning("python-magic not installed, using PIL only for validation")
+        
+        # Verify image can be opened and is valid
+        img = Image.open(filepath)
+        img.verify()
+        
+        # Re-open and re-save to strip any malicious metadata
+        img = Image.open(filepath)
+        img.save(filepath)
+        
+        return True
+    except Exception as e:
+        logger.error(f"Image validation failed for {filepath}: {e}")
+        return False
 
 
 def allowed_file(filename):
@@ -84,10 +139,23 @@ def upload():
             filename = f"{name}_{timestamp}{ext}"
             
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
             
-            # Process the image
             try:
+                # Save file temporarily
+                file.save(filepath)
+                
+                # SECURITY FIX: Validate file content is actually an image
+                if not validate_image_content(filepath):
+                    # Remove invalid file
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                    logger.warning(f"Invalid image file rejected: {filename}")
+                    return jsonify({
+                        'success': False,
+                        'error': 'Invalid image file. File must be a valid image.'
+                    }), 400
+                
+                # Process the image
                 recipe_path = processor.process_image(filepath)
                 if recipe_path:
                     recipe_id = Path(recipe_path).stem
@@ -102,10 +170,19 @@ def upload():
                         'success': False,
                         'error': 'Failed to process image'
                     }), 500
+                    
             except Exception as e:
+                # SECURITY FIX: Proper error handling - log details, return generic message
+                logger.error(f"Upload failed for {filename}: {e}", exc_info=True)
+                # Clean up file if it exists
+                if os.path.exists(filepath):
+                    try:
+                        os.remove(filepath)
+                    except Exception:
+                        pass
                 return jsonify({
                     'success': False,
-                    'error': str(e)
+                    'error': 'An error occurred processing your upload. Please try again.'
                 }), 500
         
         return jsonify({'error': 'Invalid file type'}), 400
@@ -183,9 +260,11 @@ def search():
                 }
             })
         except Exception as e:
+            # SECURITY FIX: Proper error handling - log details, return generic message
+            logger.error(f"Search failed: {e}", exc_info=True)
             return jsonify({
                 'success': False,
-                'error': str(e)
+                'error': 'An error occurred during search. Please try again.'
             }), 500
 
     _, default_per_page, allowed_per_page_values = get_pagination_args()
@@ -200,33 +279,49 @@ def search():
 @app.route('/recipe/<recipe_id>')
 def view_recipe(recipe_id):
     """View a single recipe with markdown and image."""
-    recipe_file = Path(app.config['RECIPES_FOLDER']) / f"{recipe_id}.md"
+    # SECURITY FIX: Validate recipe_id to prevent path traversal
+    if not validate_recipe_id(recipe_id):
+        logger.warning(f"Invalid recipe_id attempted: {recipe_id}")
+        abort(400, "Invalid recipe ID")
     
-    if not recipe_file.exists():
-        return "Recipe not found", 404
+    # SECURITY FIX: Use safe_join to prevent path traversal
+    recipe_file = safe_join(app.config['RECIPES_FOLDER'], f"{recipe_id}.md")
+    if recipe_file is None or not os.path.exists(recipe_file):
+        abort(404, "Recipe not found")
     
-    # Load recipe
-    recipe = searcher._load_recipe(str(recipe_file))
-    if not recipe:
-        return "Error loading recipe", 500
-    
-    # Convert markdown content to HTML
-    if recipe.get('content'):
-        md = markdown.Markdown(extensions=['extra', 'nl2br', 'sane_lists'])
-        recipe['content_html'] = md.convert(recipe['content'])
-    else:
-        recipe['content_html'] = ''
-    
-    return render_template('recipe.html', recipe=recipe, recipe_id=recipe_id)
+    try:
+        # Load recipe
+        recipe = searcher._load_recipe(recipe_file)
+        if not recipe:
+            logger.error(f"Failed to load recipe: {recipe_id}")
+            abort(500, "Error loading recipe")
+        
+        # Convert markdown content to HTML
+        if recipe.get('content'):
+            md = markdown.Markdown(extensions=['extra', 'nl2br', 'sane_lists'])
+            recipe['content_html'] = md.convert(recipe['content'])
+        else:
+            recipe['content_html'] = ''
+        
+        return render_template('recipe.html', recipe=recipe, recipe_id=recipe_id)
+    except Exception as e:
+        # SECURITY FIX: Proper error handling
+        logger.error(f"Error viewing recipe {recipe_id}: {e}", exc_info=True)
+        abort(500, "An error occurred loading the recipe")
 
 
 @app.route('/recipe/<recipe_id>/edit', methods=['GET', 'POST'])
 def edit_recipe(recipe_id):
     """Edit a recipe markdown file."""
-    recipe_file = Path(app.config['RECIPES_FOLDER']) / f"{recipe_id}.md"
+    # SECURITY FIX: Validate recipe_id to prevent path traversal
+    if not validate_recipe_id(recipe_id):
+        logger.warning(f"Invalid recipe_id attempted in edit: {recipe_id}")
+        abort(400, "Invalid recipe ID")
     
-    if not recipe_file.exists():
-        return "Recipe not found", 404
+    # SECURITY FIX: Use safe_join to prevent path traversal
+    recipe_file = safe_join(app.config['RECIPES_FOLDER'], f"{recipe_id}.md")
+    if recipe_file is None or not os.path.exists(recipe_file):
+        abort(404, "Recipe not found")
     
     if request.method == 'POST':
         data = request.json
@@ -262,17 +357,25 @@ def edit_recipe(recipe_id):
                 'message': 'Recipe updated successfully'
             })
         except Exception as e:
+            # SECURITY FIX: Proper error handling
+            logger.error(f"Error editing recipe {recipe_id}: {e}", exc_info=True)
             return jsonify({
                 'success': False,
-                'error': str(e)
+                'error': 'An error occurred updating the recipe. Please try again.'
             }), 500
     
     # GET request - load recipe for editing
-    recipe = searcher._load_recipe(str(recipe_file))
-    if not recipe:
-        return "Error loading recipe", 500
-    
-    return render_template('edit.html', recipe=recipe, recipe_id=recipe_id)
+    try:
+        recipe = searcher._load_recipe(recipe_file)
+        if not recipe:
+            logger.error(f"Failed to load recipe for editing: {recipe_id}")
+            abort(500, "Error loading recipe")
+        
+        return render_template('edit.html', recipe=recipe, recipe_id=recipe_id)
+    except Exception as e:
+        # SECURITY FIX: Proper error handling
+        logger.error(f"Error loading recipe for edit {recipe_id}: {e}", exc_info=True)
+        abort(500, "An error occurred loading the recipe")
 
 
 @app.route('/recipes')
@@ -332,7 +435,22 @@ def recipes_count():
 @app.route('/images/<filename>')
 def serve_image(filename):
     """Serve images from the images directory."""
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    # SECURITY FIX: Validate filename to prevent path traversal
+    if not validate_filename(filename):
+        logger.warning(f"Invalid filename attempted: {filename}")
+        abort(400, "Invalid filename")
+    
+    # SECURITY FIX: Use safe_join to prevent path traversal
+    filepath = safe_join(app.config['UPLOAD_FOLDER'], filename)
+    if filepath is None or not os.path.exists(filepath):
+        abort(404, "Image not found")
+    
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    except Exception as e:
+        # SECURITY FIX: Proper error handling
+        logger.error(f"Error serving image {filename}: {e}", exc_info=True)
+        abort(500, "An error occurred serving the image")
 
 
 @app.route('/api/search-options')
