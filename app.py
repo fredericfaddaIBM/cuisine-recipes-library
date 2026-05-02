@@ -41,8 +41,12 @@ def validate_recipe_id(recipe_id: str) -> bool:
     """Validate recipe ID contains only safe characters to prevent path traversal."""
     if not recipe_id:
         return False
-    # Only allow alphanumeric, hyphens, and underscores
-    return bool(re.match(r'^[a-zA-Z0-9_-]+$', recipe_id))
+    # Check for path traversal attempts
+    if '..' in recipe_id or '/' in recipe_id or '\\' in recipe_id:
+        return False
+    # Allow alphanumeric (including Unicode/accented chars), hyphens, underscores, and numbers
+    # This supports French recipe names like "blanquette-de-saumon-écossais-label-rouge-aux-girolles-et-marrons-1"
+    return bool(re.match(r'^[\w\-]+$', recipe_id, re.UNICODE))
 
 
 def validate_filename(filename: str) -> bool:
