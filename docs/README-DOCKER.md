@@ -2,7 +2,7 @@
 
 This guide explains how to run the Recipe Library web application in a container with access to your local Ollama installation.
 
-> **Note**: This guide covers both Docker and Podman. For Podman-specific details, see [README-PODMAN.md](README-PODMAN.md).
+> **Note**: This guide covers both Docker and Podman. For Podman-specific details, see [`README-PODMAN.md`](./README-PODMAN.md).
 
 ## Prerequisites
 
@@ -233,5 +233,5 @@ Docker will automatically restart the container if health checks fail.
 For issues or questions:
 1. Check the logs: `docker-compose logs` or `podman-compose logs`
 2. Verify Ollama is running: `ollama list`
-3. For Podman-specific issues, see [README-PODMAN.md](README-PODMAN.md)
-4. Check the main [README.md](README.md) for general usage information
+3. For Podman-specific issues, see [`README-PODMAN.md`](./README-PODMAN.md)
+4. Check the main [`README.md`](../README.md) for general usage information

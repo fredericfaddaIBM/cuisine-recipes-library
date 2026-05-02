@@ -1,22 +1,22 @@
 # macOS LaunchAgent for Recipe Library
 
-This document explains how to start the Recipe Library container automatically at macOS login using a user [`LaunchAgent`](scripts/com.cuisine-recipes-library.webapp.plist).
+This document explains how to start the Recipe Library container automatically at macOS login using a user [`LaunchAgent`](../scripts/com.cuisine-recipes-library.webapp.plist).
 
 ## Files
 
-- [`scripts/macos-launch-recipe-library.sh`](scripts/macos-launch-recipe-library.sh): wrapper script that starts the application with [`start-docker.sh`](start-docker.sh)
-- [`scripts/com.cuisine-recipes-library.webapp.plist`](scripts/com.cuisine-recipes-library.webapp.plist): LaunchAgent definition for macOS
+- [`scripts/macos-launch-recipe-library.sh`](../scripts/macos-launch-recipe-library.sh): wrapper script that starts the application with [`start-docker.sh`](../start-docker.sh)
+- [`scripts/com.cuisine-recipes-library.webapp.plist`](../scripts/com.cuisine-recipes-library.webapp.plist): LaunchAgent definition for macOS
 
 ## How it works
 
-The macOS agent runs [`/bin/bash -lc`](scripts/com.cuisine-recipes-library.webapp.plist) and sets a local `PROJECT_DIR` variable before calling [`scripts/macos-launch-recipe-library.sh`](scripts/macos-launch-recipe-library.sh).
+The macOS agent runs [`/bin/bash -lc`](../scripts/com.cuisine-recipes-library.webapp.plist) and sets a local `PROJECT_DIR` variable before calling [`scripts/macos-launch-recipe-library.sh`](../scripts/macos-launch-recipe-library.sh).
 
 The wrapper script then:
 
 1. changes to the project directory
-2. ensures the [`logs/`](logs/) directory exists
-3. launches [`start-docker.sh`](start-docker.sh)
-4. appends output to [`logs/macos-launch.log`](logs/macos-launch.log)
+2. ensures the [`logs/`](../logs/) directory exists
+3. launches [`start-docker.sh`](../start-docker.sh)
+4. appends output to [`logs/macos-launch.log`](../logs/macos-launch.log)
 
 ## Install
 
@@ -81,8 +81,8 @@ rm -f ~/Library/LaunchAgents/com.cuisine-recipes-library.webapp.plist
 
 ## Important notes
 
-- [`LaunchAgent`](scripts/com.cuisine-recipes-library.webapp.plist) starts when your user session logs in, not before the graphical session exists.
-- The current [`plist`](scripts/com.cuisine-recipes-library.webapp.plist) contains the project path for this machine: `/Users/fredericfadda/ffadev/cuisine-recipes-library`.
-- If the project moves, update both [`scripts/macos-launch-recipe-library.sh`](scripts/macos-launch-recipe-library.sh) and [`scripts/com.cuisine-recipes-library.webapp.plist`](scripts/com.cuisine-recipes-library.webapp.plist).
+- [`LaunchAgent`](../scripts/com.cuisine-recipes-library.webapp.plist) starts when your user session logs in, not before the graphical session exists.
+- The current [`plist`](../scripts/com.cuisine-recipes-library.webapp.plist) contains the project path for this machine: `/Users/fredericfadda/ffadev/cuisine-recipes-library`.
+- If the project moves, update both [`scripts/macos-launch-recipe-library.sh`](../scripts/macos-launch-recipe-library.sh) and [`scripts/com.cuisine-recipes-library.webapp.plist`](../scripts/com.cuisine-recipes-library.webapp.plist).
 - If Docker Desktop or Podman is not ready yet at login, the startup may fail and should be checked in the log files.
-- [`start-docker.sh`](start-docker.sh) currently runs [`docker-compose up --build`](start-docker.sh:85) or [`podman-compose up --build`](start-docker.sh:85), so the LaunchAgent keeps the process attached while the container stack is running.
+- [`start-docker.sh`](../start-docker.sh) currently runs [`docker-compose up --build`](../start-docker.sh:85) or [`podman-compose up --build`](../start-docker.sh:85), so the LaunchAgent keeps the process attached while the container stack is running.

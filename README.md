@@ -438,8 +438,8 @@ The web application will be available at: **http://localhost:26574**
 
 ### Documentation
 
-- [README-DOCKER.md](README-DOCKER.md) - Docker/Podman setup guide
-- [README-PODMAN.md](README-PODMAN.md) - Podman-specific details
+- [`README-DOCKER.md`](docs/README-DOCKER.md) - Docker/Podman setup guide
+- [`README-PODMAN.md`](docs/README-PODMAN.md) - Podman-specific details
 
 ## Future Enhancements
 
