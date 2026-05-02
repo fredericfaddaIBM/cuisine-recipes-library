@@ -79,6 +79,13 @@ cuisine-recipes-library/
 ├── embeddings/             # Vector embeddings for search
 ├── json-extract/           # Raw JSON extractions (debug)
 ├── logs/                   # Script execution logs
+├── docs/                   # Documentation files
+│   ├── QUICKSTART.md       # Quick start guide
+│   ├── SETUP.md            # Detailed setup instructions
+│   ├── README-DOCKER.md    # Docker setup guide
+│   ├── README-PODMAN.md    # Podman-specific details
+│   ├── DOCKER-SETUP-SUMMARY.md  # Docker setup summary
+│   └── MACOS-LAUNCHAGENT.md     # macOS LaunchAgent configuration
 ├── scripts/
 │   ├── process_images.py   # Recipe extraction script
 │   └── search_recipes.py   # Recipe search utility
